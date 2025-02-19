@@ -1,0 +1,1 @@
+export {default as PvmDashboard} from './pages/PvmDashboard'

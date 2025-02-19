@@ -11,10 +11,10 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 
 import * as yup from "yup";
-import { yupResolver } from "@hookform/resolvers/yup";
 import { useForm } from "react-hook-form";
-import { useLoginMutation } from "@/lib/redux/api/auth.api";
+import { yupResolver } from "@hookform/resolvers/yup";
 import { useAppDispatch } from "@/hooks/redux.hooks";
+import { useLoginMutation } from "@/lib/redux/api/auth.api";
 import { setLogin } from "@/lib/redux/slices/auth.slice";
 
 const authSchema = yup.object({

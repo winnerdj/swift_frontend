@@ -1,6 +1,6 @@
 import React from "react";
-import AuthForm from "../components/form/AuthForm";
 import { Navigate } from "react-router-dom";
+import AuthForm from "../components/form/AuthForm";
 
 import { getAccessToken } from "@/lib/redux/slices/auth.slice";
 import { useAppSelector } from "@/hooks/redux.hooks";

@@ -11,6 +11,7 @@ import {
 } from 'redux-persist'
 import storage from 'redux-persist/lib/storage';
 import { apiSlice, errorHandler } from './api'
+
 import tripSlice from './slices/trip.slice';
 import authSlice from './slices/auth.slice';
 import pvmDashboardSlice from './slices/pvm-dashboard.slice'
@@ -21,7 +22,6 @@ const persistConfig = {
   version: 1,
   storage,
 }
-
 
 export const store = configureStore({
   reducer: combineReducers({

@@ -1,35 +1,38 @@
-import {createSlice, PayloadAction} from '@reduxjs/toolkit'
-import {RootState} from '../store'
+import { createSlice, PayloadAction } from "@reduxjs/toolkit";
+import { RootState } from "../store";
 
-type authSliceType = {
-    token: string | null,
-    user_id: string | null,
-    role_name: string | null,
-    role_id: string | null
-}
+//## Define the auth state type
+type AuthState = {
+    user_id: string | undefined;
+    token?: {
+        app_key: string | undefined;
+        expiry: string | undefined;
+        "x-access-token": string | undefined;
+    };
+};
 
-const initialState:authSliceType = {
-    token: null,
-    user_id: null,
-    role_name: null,
-    role_id: null
-}
+//## Initial state
+const initialState: AuthState = {
+    user_id: undefined,
+    token: undefined
+};
 
-export const authSlice = createSlice({
-    name:'auth',
+//## Create auth slice
+const authSlice = createSlice({
+    name: "auth",
     initialState,
     reducers: {
-        setLogin: (state, action:  PayloadAction<authSliceType>) =>({
-            ...state,
-            ...action.payload
-        }),
-        setLogOut:() => initialState
-    }
-})
+        setLogin: (state, action: PayloadAction<AuthState>) => {
+            Object.assign(state, action.payload); //## Mutate state directly (recommended by RTK)
+        },
+        setLogOut: () => initialState, //## Reset state on logout
+    },
+});
 
+//## Selectors
 export const getAccessToken = (state: RootState) => state.auth.token;
-export const getSession = (state: RootState) => state.auth;
-export const {setLogin,setLogOut} = authSlice.actions;
+export const getSession = (state: RootState): AuthState => state.auth;
+
+//### Export actions & reducer
+export const { setLogin, setLogOut } = authSlice.actions;
 export default authSlice.reducer;
-
-

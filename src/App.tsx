@@ -1,15 +1,19 @@
 import { Navigate, Outlet } from "react-router-dom";
 import Header from "@/components/layouts/header/Header";
 import { useAppSelector } from "./hooks/redux.hooks"
-import { getAccessToken } from "./lib/redux/slices/auth.slice"
+import { getSession } from "./lib/redux/slices/auth.slice"
 import { SidebarInset, SidebarProvider, SidebarTrigger } from "./components/ui/sidebar";
 import AppSidebar from "./components/layouts/sidebar/Sidebar";
 import { Separator } from "./components/ui/separator";
 import AppBreadcrumb from "./components/layouts/breadcrumbs/Breadcrumbs";
 
 function App() {
-  const token = useAppSelector(getAccessToken);
-  if(token) return <Navigate to='/login' replace/>
+  const token = useAppSelector(getSession);
+
+  if(!token.user_id) {
+    return <Navigate to='/login' replace/>
+  }
+
   return (
     <SidebarProvider>
       <AppSidebar/>

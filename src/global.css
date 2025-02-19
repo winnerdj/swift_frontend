@@ -1,4 +1,5 @@
-  @import "tailwindcss";
+@import "tailwindcss";
+@config "../tailwind.config.js";
 
   @layer base {
     :root {
@@ -98,10 +99,6 @@
   }
 
   *{
-    list-style: none;
-    text-decoration: none;
-    margin: 0;
-    padding: 0;
     box-sizing: border-box;
     font-family: 'Open Sans', sans-serif;
   }

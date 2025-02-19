@@ -46,6 +46,7 @@ qms_frontend/
 │   ├── utils/            # Helper functions
 │   ├── App.tsx           # Main App component
 │   ├── main.tsx          # Entry point
+│   │── global.css        # Index CSS
 │── .eslintrc.cjs         # ESLint configuration
 │── tailwind.config.js    # Tailwind CSS configuration
 │── tsconfig.json         # TypeScript configuration

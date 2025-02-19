@@ -1,16 +1,27 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import {apiSlice} from '../api';
+import { apiSlice } from "../api";
 
-export const {
-    useLoginMutation
-} = apiSlice.injectEndpoints({
-    endpoints: builder => ({
-        login: builder.mutation<any, {user_id:string; user_password: string;}> ({
-            query:(args) => ({
-                url:'/auth/token/user',
-                body: args,
-                method:'POST'
-            })  
-        })
-    })
-})
+interface LoginRequest {
+    user_id: string;
+    user_password: string;
+}
+
+interface LoginResponse {
+    user_id?: string | undefined;
+    token?: {
+        app_key: string | undefined;
+        expiry: string | undefined;
+        "x-access-token": string | undefined;
+    };
+}
+
+export const { useLoginMutation } = apiSlice.injectEndpoints({
+    endpoints: (builder) => ({
+        login: builder.mutation<LoginResponse, LoginRequest>({
+            query: (credentials) => ({
+                url: "/auth/token/user",
+                method: "POST",
+                body: credentials,
+            }),
+        }),
+    }),
+});

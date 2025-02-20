@@ -1,29 +1,29 @@
-import React from 'react'
+import React from "react";
 import {
     Sidebar,
     SidebarContent,
-    SidebarHeader
-  } from "@/components/ui/sidebar"
-import SidebarAdmin from './SidebarAdmin';
+    // SidebarHeader
+} from "@/components/ui/sidebar";
+import SidebarAdmin from "./SidebarAdmin";
 
-interface SidebarProps {
-
-}
-
-const AppSidebar: React.FC<SidebarProps> = () => {
+const AppSidebar: React.FC = () => {
     return (
-        <Sidebar>
-            <SidebarHeader>
-                <div className='grid gap-2 h-14 text-center'>
-                    <h3 className='font-sans font-semibold text-lg'>Mesi Middleware</h3>
+        <Sidebar variant="sidebar" className="duration-200 inset-y-12 w-50">
+            {/* Sidebar Header */}
+            {/* <SidebarHeader className="group-hover/sidebar:bg-transparent">
+                <div className="grid h-14 gap-2 text-center">
+                    <h3 className="font-sans text-lg font-semibold">
+                        Taylor Swift
+                    </h3>
                 </div>
-            </SidebarHeader>
+            </SidebarHeader> */}
+
+            {/* Sidebar Content */}
             <SidebarContent>
-                <SidebarAdmin/>
+                <SidebarAdmin />
             </SidebarContent>
         </Sidebar>
-
     );
-}
+};
 
-export default AppSidebar
+export default AppSidebar;

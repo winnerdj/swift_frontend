@@ -25,7 +25,7 @@ const AppBreadcrumb: React.FC<BreadcrumbsProps> = () => {
     const crumbs = matches.filter((match) => Boolean(match.handle && (match.handle as HandleType).crumb))
     .map((match) => {
         const crumb = (match.handle as HandleType).crumb(location.pathname);
-          return crumb as React.ReactNode;
+            return crumb as React.ReactNode;
     })
 
     return (

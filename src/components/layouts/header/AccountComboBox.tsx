@@ -1,5 +1,5 @@
 import React from 'react'
-import { UserRound } from 'lucide-react';
+import { CircleUserRound, ChevronDown } from 'lucide-react';
 import {
     Popover,
     PopoverContent,
@@ -25,16 +25,17 @@ const AccountComboBox: React.FC<AccountComboBoxProps> = () => {
     return (
         <Popover>
             <PopoverTrigger asChild >
-                <Button variant={'ghost'} className='w-fit p-2 flex' >
-                    <UserRound className='size-2'/>
-                    <h4 className="font-bold">{user_id}</h4>
+                <Button variant={'link'} className='flex gap-1 w-fit text-gray-400 hover:no-underline hover:text-white' >
+                    <CircleUserRound className='size-2'/>
+                    <h4 className="font-semibold">{user_id}</h4>
+                    <ChevronDown className='size-2'/>
                 </Button>
             </PopoverTrigger>
-            <PopoverContent className="w-60">
+            <PopoverContent className="w-50 bg-white border-none">
                 <PopoverPrimitive.Arrow className="fill-white stroke-border h-2 w-4" />
-                <div className="grid gap-2 ">
-                    <Button variant={'outline'}>Update Password</Button>
-                    <Button variant={'outline'} onClick={handleSignOut}>Sign Out</Button>
+                <div className="grid ">
+                    <Button variant={'outline'} className='border-none hover:bg-[#CD3E3A] hover:text-white '>Update Password</Button>
+                    <Button variant={'outline'} onClick={handleSignOut} className='border-none hover:bg-[#CD3E3A] hover:text-white'>Sign Out</Button>
                 </div>
             </PopoverContent>
         </Popover>

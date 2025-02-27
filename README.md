@@ -29,26 +29,32 @@ export default {
 - Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
 - Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
 
+📂 Recommended Folder Structure
+  qms_frontend/
+  │── public/               # Static assets
+  │── src/                  # Main application source code
+  │   ├── api/              # API calls and service functions
+  │   ├── app/              # Store configuration (Redux)
+  │   │   ├── store.ts      # Redux store configuration
+  │   │   ├── slices/       # Redux slices (state logic)
+  │   ├── components/       # Reusable UI components
+  │   ├── features/         # Feature-based modules (e.g., auth, dashboard)
+  │   ├── hooks/            # Custom hooks
+  │   ├── pages/            # Application pages (e.g., Home.tsx, About.tsx)
+  │   ├── routes/           # React Router configuration
+  │   ├── styles/           # Global styles (Tailwind directives)
+  │   ├── utils/            # Helper functions
+  │   ├── App.tsx           # Main App component
+  │   ├── main.tsx          # Entry point
+  │   │── global.css        # Index CSS
+  │── .eslintrc.cjs         # ESLint configuration
+  │── tailwind.config.js    # Tailwind CSS configuration
+  │── tsconfig.json         # TypeScript configuration
+  │── vite.config.ts        # Vite configuration
+  │── package.json          # Project dependencies
 
-qms_frontend/
-│── public/               # Static assets
-│── src/                  # Main application source code
-│   ├── api/              # API calls and service functions
-│   ├── app/              # Store configuration (Redux)
-│   │   ├── store.ts      # Redux store configuration
-│   │   ├── slices/       # Redux slices (state logic)
-│   ├── components/       # Reusable UI components
-│   ├── features/         # Feature-based modules (e.g., auth, dashboard)
-│   ├── hooks/            # Custom hooks
-│   ├── pages/            # Application pages (e.g., Home.tsx, About.tsx)
-│   ├── routes/           # React Router configuration
-│   ├── styles/           # Global styles (Tailwind directives)
-│   ├── utils/            # Helper functions
-│   ├── App.tsx           # Main App component
-│   ├── main.tsx          # Entry point
-│   │── global.css        # Index CSS
-│── .eslintrc.cjs         # ESLint configuration
-│── tailwind.config.js    # Tailwind CSS configuration
-│── tsconfig.json         # TypeScript configuration
-│── vite.config.ts        # Vite configuration
-│── package.json          # Project dependencies
+📁 General Folder & File Naming Rules
+  ✅ Use kebab-case for folders (components, hooks, utils)
+  ✅ Use PascalCase for React components (Button.tsx, Sidebar.tsx)
+  ✅ Use camelCase for files that export functions, hooks, or utilities (useAuth.ts, fetchData.ts)
+  ✅ Use index files (index.ts) for barrel exports in folders

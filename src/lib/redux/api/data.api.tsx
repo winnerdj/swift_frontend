@@ -1,11 +1,11 @@
-import {apiSlice} from '../api';
+import { apiSlice } from '../api';
 
-export const {useGetDataQuery} = apiSlice.injectEndpoints({
+export const { useGetDataQuery } = apiSlice.injectEndpoints({
     endpoints: builder => ({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         getData: builder.query<any, {
-            page: number;
-            result: number;
+            pageIndex: number;
+            pageSize: number;
             route: string;
             order?: string;
             // eslint-disable-next-line @typescript-eslint/ban-types
@@ -14,14 +14,13 @@ export const {useGetDataQuery} = apiSlice.injectEndpoints({
             query: (args) => ({
                 url: args.route,
                 params:{
-                    page:   args.page,
-                    result: args.result,
-                    order:  args.order,
+                    pageIndex: args.pageIndex,
+                    pageSize: args.pageSize,
+                    order: args.order,
                     ...args.filters
                 }
             }),
-            providesTags:['Table']
+            providesTags: ['Table']
         })
     })
 })
-

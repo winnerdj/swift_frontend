@@ -3,6 +3,7 @@ import React from 'react';
 import DataTable from './Datatable';
 import { ColumnDef, PaginationState, SortingState } from '@tanstack/react-table';
 import { useGetDataQuery } from '@/lib/redux/api/data.api';
+import debounce from "lodash/debounce";
 
 interface APITableProps<TData, TValue> {
     columns: ColumnDef<TData, TValue>[];
@@ -11,39 +12,46 @@ interface APITableProps<TData, TValue> {
 }
 
 function APITable<TData, TValue>({ columns, route, ...props }: APITableProps<TData, TValue>) {
-    {/* State for pagination */}
+    /* State for pagination */
     const [pagination, setPagination] = React.useState<PaginationState>({
         pageIndex: 0,
         pageSize: 15
     });
 
-    {/* State for sorting */}
+    /* State for sorting */
     const [sorting, setSorting] = React.useState<SortingState>([]);
 
-    {/* State for sorting */}
-    // ✅ Convert sorting array to API-friendly format
+    /* State for Searc */
+    const [searchTerm, setSearchTerm] = React.useState<string>("");
+
+    /* Convert sorting array to API-friendly format */
     const order = sorting.map(({ id, desc }) => `${id},${desc ? 'desc' : 'asc'}`).join(';');
 
-    {/* Fetch data with pagination, sorting, and filters */}
-    const { data = {}, isFetching } = useGetDataQuery({
+    /* Debounce search function */
+    const debouncedSetSearch = React.useCallback(debounce(setSearchTerm, 1000), []);
+
+    /* Fetch data with pagination, sorting, and filters */
+    const { data = {}, isFetching, isLoading, isSuccess, refetch } = useGetDataQuery({
         route,
         pageSize: pagination.pageSize,
         pageIndex: pagination.pageIndex,
         order,
-        filters: { ...props.filters }
+        filters: { ...props.filters, searchTerm }
     }, {
         refetchOnMountOrArgChange: true
     });
 
-    {/* Handle sorting changes */}
+    /* Handle sorting changes */
     const handleSortingChange = React.useCallback((updater: SortingState | ((old: SortingState) => SortingState)) => {
         setSorting(updater);
     }, []);
 
-    {/* Log filter changes for debugging */}
-    React.useEffect(() => {
-        console.log(props.filters);
-    }, [props.filters]);
+    /* Handle search updates from DataTable */
+    const handleSearchChange = (query: string) => {
+        debouncedSetSearch(query);
+    };
+
+    const apiStatus = isFetching ? "Fetching..." : isLoading ? "Loading..." : isSuccess ? "Fetched ✅" : "Idle";
 
     return (
         <DataTable
@@ -59,6 +67,9 @@ function APITable<TData, TValue>({ columns, route, ...props }: APITableProps<TDa
                 sorting
             }}
             onSortingChange={handleSortingChange}
+            onSearchChange={handleSearchChange}
+            onRefresh={refetch}
+            apiStatus={apiStatus}
         />
     );
 }

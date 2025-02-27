@@ -9,7 +9,6 @@ interface SelectedUserInterface {
     role_id: string;
 }
 
-
 export const UserContext = createContext({
     state: {} as Partial<SelectedUserInterface>,
     setState: {} as Dispatch<SetStateAction<Partial<SelectedUserInterface>>>
@@ -22,5 +21,3 @@ export const UserContextProvider = ({children, value = {} as SelectedUserInterfa
         {children}
     </UserContext.Provider>
 }
-
-

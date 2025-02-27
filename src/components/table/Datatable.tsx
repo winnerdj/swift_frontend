@@ -1,3 +1,4 @@
+import React from "react";
 import {
     ColumnDef,
     OnChangeFn,
@@ -7,9 +8,9 @@ import {
     getCoreRowModel,
     getPaginationRowModel,
     getSortedRowModel,
+    getFilteredRowModel, // ✅ Import getFilteredRowModel
     useReactTable,
 } from "@tanstack/react-table";
-
 import {
     Table,
     TableBody,
@@ -22,6 +23,7 @@ import DataTablePagination from "./Pagination";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { RefreshCw, ArrowUpAZ, ArrowDownAZ } from "lucide-react";
+import { useState } from "react"; // ✅ Import useState
 
 interface DatatableProps<TData, TValue> {
     data: TData[];
@@ -32,13 +34,19 @@ interface DatatableProps<TData, TValue> {
     isLoading?: boolean;
     setPagination?: OnChangeFn<PaginationState>;
     onSortingChange?: OnChangeFn<SortingState>; /* Sorting update handler */
+    onSearchChange?: (search: string) => void;
+    onRefresh?: () => void;
     state?: {
         pagination?: PaginationState;
         sorting?: SortingState;
     };
+    apiStatus?: string;
 }
 
 function DataTable<TData, TValue>({ columns, data, ...props }: DatatableProps<TData, TValue>) {
+    const [search, setSearch] = useState(""); // ✅ Add search state
+    const [isRefreshDisabled, setIsRefreshDisabled] = useState(false); // ✅ Add isRefreshDisabled state
+
     const table = useReactTable({
         data,
         columns,
@@ -46,27 +54,55 @@ function DataTable<TData, TValue>({ columns, data, ...props }: DatatableProps<TD
         getCoreRowModel: getCoreRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
         getSortedRowModel: getSortedRowModel(),
+        getFilteredRowModel: getFilteredRowModel(), /* Enable filtering */
         manualPagination: props.manualPagination,
         onPaginationChange: props.setPagination,
         onSortingChange: props.onSortingChange,
         state: {
             pagination: props.state?.pagination,
             sorting: props.state?.sorting ?? [],
+            globalFilter: search, /* Apply global filter */
         },
     });
+
+    const handleRefresh = () => {
+        if(isRefreshDisabled) return; /* Prevent multiple clicks */
+
+        setIsRefreshDisabled(true);
+        props.onRefresh?.();
+
+        setTimeout(() => {
+            setIsRefreshDisabled(false); /* Re-enable after 5 seconds */
+        }, 10000);
+    };
+
+    React.useEffect(() => {
+        props.onSearchChange?.(search); /* Trigger search update in parent */
+    }, [search]);
 
     return (
         <div className="pl-2 pr-3">
             <div className="flex justify-between pb-3">
                 <div className="flex gap-1">
-                    <Input className="h-8" placeholder="Search" />
-                    <Button variant="ghost" className="h-8" size="icon">
-                        <RefreshCw className="text-gray-600 h-3" />
+                    <Input className="h-8" 
+                        placeholder="Search" 
+                        value={search} /* Bind value */
+                        onChange={(e) => {
+                            setSearch(e.target.value); /* Update local state */
+                            props.onSearchChange?.(e.target.value); /* Also update the parent */
+                        }}
+                    />
+                    <Button variant="ghost" className="h-8 transition-colors duration-200 hover:bg-gray-200 active:bg-gray-300" size="icon" onClick={() => { handleRefresh() }}>
+                    <RefreshCw className={`h-3 transition-colors duration-200 ${isRefreshDisabled ? "text-gray-400" : "text-gray-600 hover:text-black active:text-gray-800"}`} />
                     </Button>
                 </div>
-                <span className="font-sans text-sm font-semibold self-end">
-                    Total Rows: {props.manualPagination ? props.count : data.length}
-                </span>
+                <div className="flex items-center gap-2 justify-between">
+                    <span className="text-xs font-light text-gray-400">{props.apiStatus}</span>
+                    <span className="text-2xl font-light text-gray-400">{'|'}</span>
+                    <span className="font-sans text-sm font-semibold">
+                        Total Rows: {props.manualPagination ? props.count : data.length}
+                    </span>
+                </div>
             </div>
             <div className="rounded-md border border-gray-300">
                 <Table>
@@ -81,8 +117,8 @@ function DataTable<TData, TValue>({ columns, data, ...props }: DatatableProps<TD
                                     >
                                         {!header.isPlaceholder &&
                                             flexRender(header.column.columnDef.header, header.getContext())}
-                                        {header.column.getIsSorted() === "asc" ? <ArrowUpAZ className="h-4 w-6 text-red-600 inline" /> : ""}
-                                        {header.column.getIsSorted() === "desc" ? <ArrowDownAZ className="h-4 w-6 text-red-600 inline"/> : ""}
+                                        {header.column.getIsSorted() === "asc" ? <ArrowDownAZ className="h-4 w-6 text-red-600 inline" /> : ""}
+                                        {header.column.getIsSorted() === "desc" ? <ArrowUpAZ className="h-4 w-6 text-red-600 inline"/> : ""}
                                     </TableHead>
                                 ))}
                             </TableRow>

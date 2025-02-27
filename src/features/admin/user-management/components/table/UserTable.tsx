@@ -1,6 +1,6 @@
 import APITable from '@/components/table/APITable';
 import { ColumnDef } from '@tanstack/react-table';
-import React, { useContext } from 'react'
+import React from 'react'
 import { userTableType } from '../../types';
 import moment from 'moment';
 import useDisclosure from '@/hooks/useDisclosure';
@@ -62,7 +62,7 @@ const UserTable: React.FC<UserTableProps> = () => {
             header:'Created At',
             cell: props => {
                 const date = props.getValue();
-                return date ? moment(date).format('MM-DD-YYYY HH:mm') : "N/A";
+                return date ? moment(date).format('YYYY-MM-DD HH:mm') : "N/A";
             }
         },
         {
@@ -74,7 +74,7 @@ const UserTable: React.FC<UserTableProps> = () => {
             header:'Modified At',
             cell: props => {
                 const date = props.getValue();
-                return date ? moment(date).format('MM-DD-YYYY HH:mm') : "N/A";
+                return date ? moment(date).format('YYYY-MM-DD HH:mm') : "N/A";
             }
         }
         // ,{

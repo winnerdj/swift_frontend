@@ -1,4 +1,4 @@
-import React,{createContext, Dispatch, SetStateAction} from 'react'
+import React, { createContext, Dispatch, SetStateAction } from 'react'
 
 interface SelectedUserInterface {
     id:string;

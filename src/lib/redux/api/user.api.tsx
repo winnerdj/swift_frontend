@@ -1,9 +1,17 @@
 import {apiSlice} from '../api';
 
 type createUser = {
-    username:string;
-    role_id: string;
-    app_key: string;
+    user_name: string;
+    user_role: string;
+    // user_password: string;
+    // user_status: string;
+    user_email: string;
+    user_first_name: string;
+    user_middle_name: string;
+    user_last_name: string;
+    user_contact_person: string;
+    user_contact_no: string;
+    user_address: string;
 }
 
 type updateUser = {
@@ -14,15 +22,8 @@ type updateUser = {
     is_active?: number;
 }
 
-export const {useGenerateAppKeyMutation, useCreateUserMutation, useUpdateUserMutation} = apiSlice.injectEndpoints({
+export const { useCreateUserMutation, useUpdateUserMutation } = apiSlice.injectEndpoints({
     endpoints: builder => ({
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        generateAppKey: builder.mutation<any, void>({
-            query: () => ({
-                url: '/user/app-key',
-                method:'POST'
-            })
-        }),
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         createUser: builder.mutation<any,createUser>({
             query: (args) => ({
@@ -40,7 +41,5 @@ export const {useGenerateAppKeyMutation, useCreateUserMutation, useUpdateUserMut
             }),
             invalidatesTags:['Table']
         })
-
     })
-
 })

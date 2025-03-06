@@ -1,5 +1,5 @@
 import React from 'react';
-import {Button} from '@/components/ui/button'
+import { Button } from '@/components/ui/button'
 import UserTable from '../components/table/UserTable';
 import CreateUser from '../components/modals/CreateUser';
 import useDisclosure from '@/hooks/useDisclosure';

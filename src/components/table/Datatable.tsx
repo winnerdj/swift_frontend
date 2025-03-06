@@ -92,8 +92,8 @@ function DataTable<TData, TValue>({ columns, data, ...props }: DatatableProps<TD
                             props.onSearchChange?.(e.target.value); /* Also update the parent */
                         }}
                     />
-                    <Button variant="ghost" className="h-8 transition-colors duration-200 hover:bg-gray-200 active:bg-gray-300" size="icon" onClick={() => { handleRefresh() }}>
-                    <RefreshCw className={`h-3 transition-colors duration-200 ${isRefreshDisabled ? "text-gray-400" : "text-gray-600 hover:text-black active:text-gray-800"}`} />
+                    <Button variant="outline" className="h-8 w-8" onClick={() => handleRefresh() } disabled={isRefreshDisabled} >
+                        <RefreshCw className="h-4 w-4"/>
                     </Button>
                 </div>
                 <div className="flex items-center gap-2 justify-between">

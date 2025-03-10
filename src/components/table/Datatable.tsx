@@ -44,8 +44,8 @@ interface DatatableProps<TData, TValue> {
 }
 
 function DataTable<TData, TValue>({ columns, data, ...props }: DatatableProps<TData, TValue>) {
-    const [search, setSearch] = useState(""); // ✅ Add search state
-    const [isRefreshDisabled, setIsRefreshDisabled] = useState(false); // ✅ Add isRefreshDisabled state
+    const [search, setSearch] = useState("");
+    const [isRefreshDisabled, setIsRefreshDisabled] = useState(false);
 
     const table = useReactTable({
         data,
@@ -92,7 +92,7 @@ function DataTable<TData, TValue>({ columns, data, ...props }: DatatableProps<TD
                             props.onSearchChange?.(e.target.value); /* Also update the parent */
                         }}
                     />
-                    <Button variant="outline" className="h-8 w-8" onClick={() => handleRefresh() } disabled={isRefreshDisabled} >
+                    <Button variant="outline" className="cursor-pointer h-8 w-8" onClick={() => handleRefresh()} disabled={isRefreshDisabled} >
                         <RefreshCw className="h-4 w-4"/>
                     </Button>
                 </div>

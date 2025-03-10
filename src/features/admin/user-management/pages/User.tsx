@@ -4,7 +4,7 @@ import UserTable from '../components/table/UserTable';
 import CreateUser from '../components/modals/CreateUser';
 import useDisclosure from '@/hooks/useDisclosure';
 import { UserContextProvider } from '../components/context/UserContext';
-import { CirclePlus } from 'lucide-react'
+import { UserRoundPlus  } from 'lucide-react'
 
 interface UserProps {
 
@@ -17,8 +17,8 @@ const User: React.FC<UserProps> = () => {
         <div className='grid gap-3 pl-2 pr-2'>
             {/* HEADER */}
             <div className='flex w-full items-center justify-end rounded-xs p-3 h-12 bg-gray-50 shadow-2xs'>
-                <Button variant={'outline'} className='p-2 h-7' onClick={createUser.onOpen}>
-                    <CirclePlus/>
+                <Button variant={'ghost'} className='p-2 h-7 hover:bg-gray-400' onClick={createUser.onOpen}>
+                    <UserRoundPlus/>
                     Create User
                 </Button>
             </div>

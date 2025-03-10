@@ -117,7 +117,7 @@
                                             control={form.control}
                                             name='user_name'
                                             render={({ field }) => (
-                                                <FormInput {...field} label='Username' placeholder='Enter username' />
+                                                <FormInput {...field} label='Username' placeholder='Enter username' autoCapitalize='on' autoComplete="off" spellCheck={false} autoCorrect="off"/>
                                             )}
                                         />
                                         <FormField
@@ -143,25 +143,22 @@
                                             control={form.control}
                                             name='user_email'
                                             render={({ field }) => (
-                                                <FormInput {...field} label='Email' placeholder='Enter email' type='email' />
+                                                <FormInput {...field} label='Email' placeholder='Enter email' type='email' autoComplete="off" spellCheck="false" autoCorrect="off"/>
                                             )}
                                         />
                                         <FormField
                                             control={form.control}
                                             name='user_first_name'
                                             render={({ field }) => (
-                                                <FormInput {...field} label='First Name' placeholder='Enter first name' />
+                                                <FormInput {...field} label='First Name' placeholder='Enter first name' autoComplete="off" spellCheck="false" autoCorrect="off"/>
                                             )}
                                         />
                                         <FormField
                                             control={form.control}
                                             name='user_middle_name'
                                             render={({ field }) => (
-                                                <FormInput 
-                                                    {...field} 
-                                                    label='Middle Name' 
-                                                    placeholder='Enter middle name (optional)' 
-                                                    value={field.value ?? ''} // Convert null to empty string
+                                                <FormInput {...field} label='Middle Name' placeholder='Enter middle name (optional)' value={field.value ?? ''}
+                                                    autoComplete="off" spellCheck="false" autoCorrect="off"
                                                 />
                                             )}
                                         />
@@ -169,28 +166,28 @@
                                             control={form.control}
                                             name='user_last_name'
                                             render={({ field }) => (
-                                                <FormInput {...field} label='Last Name' placeholder='Enter last name' />
+                                                <FormInput {...field} label='Last Name' placeholder='Enter last name' autoComplete="off" spellCheck="false" autoCorrect="off" />
                                             )}
                                         />
                                         <FormField
                                             control={form.control}
                                             name='user_contact_no'
                                             render={({ field }) => (
-                                                <FormInput {...field} label='Contact No' placeholder='Enter contact number' />
+                                                <FormInput {...field} label='Contact No' placeholder='Enter contact number' autoComplete="off" spellCheck="false" autoCorrect="off" />
                                             )}
                                         />
                                         <FormField
                                             control={form.control}
                                             name='user_contact_person'
                                             render={({ field }) => (
-                                                <FormInput {...field} label='Contact Person' placeholder='Enter contact person (optional)' value={field.value ?? ''} />
+                                                <FormInput {...field} label='Contact Person' placeholder='Enter contact person (optional)' value={field.value ?? ''} autoComplete="off" spellCheck="false" autoCorrect="off"/>
                                             )}
                                         />
                                         <FormField
                                             control={form.control}
                                             name='user_address'
                                             render={({ field }) => (
-                                                <FormInput {...field} label='Address' placeholder='Enter address' value={field.value ?? ''} />
+                                                <FormInput {...field} label='Address' placeholder='Enter address' value={field.value ?? ''} autoComplete="off" spellCheck="false" autoCorrect="off"/>
                                             )}
                                         />
                                     </div>

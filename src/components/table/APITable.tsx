@@ -43,6 +43,7 @@ function APITable<TData, TValue>({ columns, route, rowSelection, setRowSelection
     /* Handle sorting changes */
     const handleSortingChange = useCallback((updater: SortingState | ((old: SortingState) => SortingState)) => {
         setSorting(updater);
+        setRowSelection({})
     }, []);
 
     /* Handle search updates from DataTable */

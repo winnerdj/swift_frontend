@@ -9,9 +9,9 @@ import UpdateUserStatus from '../modals/UpdateUserStatus';
 import UpdateRole from '../modals/UpdateRole';
 import { Checkbox } from '@/components/ui/checkbox'
 
-interface UserTableProps {
+// interface UserTableProps {
 
-}
+// }
 
 const UserTable: React.FC = () => {
     const updateStatus = useDisclosure();
@@ -113,7 +113,7 @@ const UserTable: React.FC = () => {
             <UpdateUserStatus isOpen={updateStatus.open} onClose={updateStatus.onClose} />
             <UpdateRole isOpen={updateRole.open} onClose={updateRole.onClose} />
             <div onClick={() => console.log('selectedRows', selectedRows)}>
-                CONSOLE LOG
+                .......
             </div>
         </div>
     );

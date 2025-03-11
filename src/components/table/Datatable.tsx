@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
     ColumnDef,
     OnChangeFn,
@@ -8,8 +8,9 @@ import {
     getCoreRowModel,
     getPaginationRowModel,
     getSortedRowModel,
-    getFilteredRowModel, // ✅ Import getFilteredRowModel
+    getFilteredRowModel,
     useReactTable,
+    RowSelectionState
 } from "@tanstack/react-table";
 import {
     Table,
@@ -23,7 +24,6 @@ import DataTablePagination from "./Pagination";
 import { Input } from "../ui/input";
 import { Button } from "../ui/button";
 import { RefreshCw, ArrowUpAZ, ArrowDownAZ } from "lucide-react";
-import { useState } from "react"; // ✅ Import useState
 
 interface DatatableProps<TData, TValue> {
     data: TData[];
@@ -39,8 +39,11 @@ interface DatatableProps<TData, TValue> {
     state?: {
         pagination?: PaginationState;
         sorting?: SortingState;
+        rowSelection: RowSelectionState;
     };
     apiStatus?: string;
+    onRowSelectionChange?: OnChangeFn<RowSelectionState>;
+    onSelectedRowsChange?: (selectedRows: TData[]) => void;
 }
 
 function DataTable<TData, TValue>({ columns, data, ...props }: DatatableProps<TData, TValue>) {
@@ -59,10 +62,14 @@ function DataTable<TData, TValue>({ columns, data, ...props }: DatatableProps<TD
         onPaginationChange: props.setPagination,
         onSortingChange: props.onSortingChange,
         state: {
+            ...props.state,
             pagination: props.state?.pagination,
             sorting: props.state?.sorting ?? [],
-            globalFilter: search, /* Apply global filter */
+            globalFilter: search,
+            rowSelection: props.state?.rowSelection,
         },
+        enableRowSelection: true,
+        onRowSelectionChange: props.onRowSelectionChange
     });
 
     const handleRefresh = () => {
@@ -72,13 +79,20 @@ function DataTable<TData, TValue>({ columns, data, ...props }: DatatableProps<TD
         props.onRefresh?.();
 
         setTimeout(() => {
-            setIsRefreshDisabled(false); /* Re-enable after 5 seconds */
+            setIsRefreshDisabled(false); /* Re-enable after 10 seconds */
         }, 10000);
     };
 
     React.useEffect(() => {
         props.onSearchChange?.(search); /* Trigger search update in parent */
     }, [search]);
+
+    React.useEffect(() => {
+        if(props.onSelectedRowsChange) {
+            const selectedRows = table.getSelectedRowModel().rows.map(row => row.original);
+            props.onSelectedRowsChange(selectedRows);
+        }
+    }, [table.getSelectedRowModel().rows]);
 
     return (
         <div className="pl-2 pr-3">

@@ -13,7 +13,10 @@ interface APITableProps<TData, TValue> {
     onSelectedRowsChange?: (rows: TData[]) => void;
 }
 
-function APITable<TData, TValue>({ columns, route, rowSelection, setRowSelection, ...props }: APITableProps<TData, TValue>) {
+function APITable<TData, TValue>({ columns, route, 
+    rowSelection, 
+    setRowSelection,
+    ...props }: APITableProps<TData, TValue>) {
     const [pagination, setPagination] = useState<PaginationState>({ pageIndex: 0, pageSize: 15 });   /* State for pagination */
     const [sorting, setSorting] = useState<SortingState>([]);   /* State for sorting */
     const [searchTerm, setSearchTerm] = useState<string>('');   /* State for Search */

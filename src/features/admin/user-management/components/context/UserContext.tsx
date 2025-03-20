@@ -17,7 +17,7 @@ export const UserContext = createContext({
 export const UserContextProvider = ({children, value = {} as SelectedUserInterface}:{children: React.ReactNode, value?: Partial<SelectedUserInterface>}) => {
     const [state, setState] = React.useState(value);
 
-    return <UserContext.Provider value={{state,setState}}>
+    return <UserContext.Provider value={{ state, setState }}>
         {children}
     </UserContext.Provider>
 }

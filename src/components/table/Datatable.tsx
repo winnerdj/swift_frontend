@@ -106,13 +106,13 @@ function DataTable<TData, TValue>({ columns, data, ...props }: DatatableProps<TD
                             props.onSearchChange?.(e.target.value); /* Also update the parent */
                         }}
                     />
-                    <Button variant="outline" className="cursor-pointer h-8 w-8" onClick={() => handleRefresh()} disabled={isRefreshDisabled} >
+                    <Button variant="outline" className="cursor-pointer h-8 w-8 hover:bg-gray-400" onClick={() => handleRefresh()} disabled={isRefreshDisabled} >
                         <RefreshCw className="h-4 w-4"/>
                     </Button>
                 </div>
                 <div className="flex items-center gap-2 justify-between">
                     <span className="text-xs font-light text-gray-400">{props.apiStatus}</span>
-                    <span className="text-2xl font-light text-gray-400">{'|'}</span>
+                    <span className="text-2xl font-light text-gray-500">{'|'}</span>
                     <span className="font-sans text-sm font-semibold">
                         Total Rows: {props.manualPagination ? props.count : data.length}
                     </span>

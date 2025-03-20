@@ -10,4 +10,4 @@ const useDisclosure = () => {
     return {open, onClose, onOpen}
 }
 
-export default useDisclosure; 
+export default useDisclosure;

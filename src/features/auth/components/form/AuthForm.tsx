@@ -93,7 +93,7 @@ const AuthForm: React.FC = () => {
                         </FormItem>
                     )}
                 />
-                <Button 
+                <Button
                     isLoading={isLoading}
                     type="submit"
                     className="bg-blue-500 hover:bg-blue-600 transition-all text-white font-medium py-2 rounded-lg"

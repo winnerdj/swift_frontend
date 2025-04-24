@@ -97,7 +97,7 @@ const TruckerForm: React.FC<TruckerFormProps> = () => {
                             <FormItem>
                                 <div className='flex gap-1 items-center'>
                                     <FormControl>
-                                        <Input type='checkbox' className='h-5 w-5'  onChange={(e) => field.onChange(e.target.checked)} checked={field.value}/> 
+                                        <Input type='checkbox' className='h-5 w-5'  onChange={(e) => field.onChange(e.target.checked)} checked={field.value}/>
                                     </FormControl>
                                     <FormLabel>Plate number matches VQIC</FormLabel>
                                 </div>
@@ -113,7 +113,7 @@ const TruckerForm: React.FC<TruckerFormProps> = () => {
                             <FormItem>
                                 <div className='flex gap-1 items-center'>
                                     <FormControl>
-                                        <Input type='checkbox' className='h-5 w-5'  onChange={(e) => field.onChange(e.target.checked)} checked={field.value}/> 
+                                        <Input type='checkbox' className='h-5 w-5'  onChange={(e) => field.onChange(e.target.checked)} checked={field.value}/>
                                     </FormControl>
                                     <FormLabel>Trucker Name matches VQIC</FormLabel>
                                 </div>
@@ -121,12 +121,11 @@ const TruckerForm: React.FC<TruckerFormProps> = () => {
                             </FormItem>
                         )}
                     />
-                        
                     <div className='grid grid-cols-2 gap-2'>
                         <label>Trucker Name:</label> <label>{data?.trucker_name}</label>
                         <label>Vehicle Type:</label> <label>{data?.vehicle_type}</label>
-                    </div> 
-                    <Button isLoading={isLoading || getTruckerProps.isLoading}>Submit</Button>          
+                    </div>
+                    <Button isLoading={isLoading || getTruckerProps.isLoading}>Submit</Button>
                 </div>
             </Form>
         </form>

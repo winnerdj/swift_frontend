@@ -26,11 +26,9 @@ const FormInput = React.forwardRef<HTMLInputElement, InputProps>(
                 </FormControl>
                 <FormMessage className='text-xs'/>
             </FormItem>
-          
         )
     }
 )
-
 
 FormInput.displayName = 'FromInput'
 

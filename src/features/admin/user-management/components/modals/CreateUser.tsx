@@ -87,7 +87,7 @@ const CreateUser: React.FC<CreateUserProps> = (props) => {
                 toast.success(response.message);
                 form.reset();
                 setRole(null);
-                onClose();
+                props.onClose();
             }
         })
         .catch(error => {
@@ -111,7 +111,7 @@ const CreateUser: React.FC<CreateUserProps> = (props) => {
                             <CardHeader>
                                 <CardTitle>Create User</CardTitle>
                             </CardHeader>
-                            <CardContent>   
+                            <CardContent>
                                 <div className='grid grid-cols-3 gap-4'>
                                     <FormField
                                         control={form.control}
@@ -127,6 +127,7 @@ const CreateUser: React.FC<CreateUserProps> = (props) => {
                                             <div className='space-y-2 flex flex-col gap-0'>
                                                 <label className='font-bold font-sans text-sm leading-none mr-0 ml-0'>Role</label>
                                                 <APISelect
+                                                    id='user_role'
                                                     type={'role'}
                                                     onChange={(selected) => {
                                                         form.setValue('user_role', selected?.value || '', { shouldValidate: true })

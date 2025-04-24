@@ -57,7 +57,7 @@ const UserTable: React.FC<UserTableProps> = ({
                         onClick={() => {
                             setClickedRow(row.original);
                             // Call updateUser.onOpen() to show the modal
-                            // updateUser.onOpen(); 
+                            // updateUser.onOpen();
                             openUpdateModal()}}
                     ><Pencil/>
                     </Button>

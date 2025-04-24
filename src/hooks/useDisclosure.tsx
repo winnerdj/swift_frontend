@@ -1,13 +1,13 @@
 import React from 'react';
 
 const useDisclosure = () => {
-    const [state,setState] = React.useState<boolean>(false);
+    const [state, setState] = React.useState<Record<string, boolean>>({});
 
-    const open = state;
-    const onClose = () => setState(false)
-    const onOpen = () => setState(true)
+    const isOpen = (key: string) => !!state[key];
+    const onOpen = (key: string) => setState((prev) => ({ ...prev, [key]: true }));
+    const onClose = (key: string) => setState((prev) => ({ ...prev, [key]: false }));
 
-    return {open, onClose, onOpen}
-}
+    return { isOpen, onOpen, onClose };
+};
 
 export default useDisclosure;

@@ -29,7 +29,7 @@ const User: React.FC<UserProps> = () => {
         <div className='grid gap-3 pl-2 pr-2'>
             {/* HEADER */}
             <div className='flex w-full items-center justify-end rounded-xs p-3 h-12 gap-x-4 bg-gray-50 shadow-2xs'>
-                <Button variant={'ghost'} className='p-2 h-7 hover:bg-gray-400 gap-1.5' onClick={userDisclosure.onOpen}>
+                <Button variant={'ghost'} className='p-2 h-7 hover:bg-gray-400 gap-1.5' onClick={() => userDisclosure.onOpen('createUser') }>
                     <UserRoundPlus/>
                     Create User
                 </Button>
@@ -49,12 +49,12 @@ const User: React.FC<UserProps> = () => {
                         setSelectedRows={setSelectedRows}
                         clickedRow={clickedRow}
                         setClickedRow={setClickedRow}
-                        openUpdateModal={userDisclosure.onOpen} 
+                        openUpdateModal={() => userDisclosure.onOpen('updateUser')}
                     />
                 </UserContextProvider>
             </div>
-            <CreateUser isOpen={userDisclosure.open} onClose={userDisclosure.onClose}/>
-            <UpdateUser isOpen={userDisclosure.open && selectedRows !== null} onClose={userDisclosure.onClose} selectedUser={clickedRow} />
+            <CreateUser isOpen={userDisclosure.isOpen('createUser')} onClose={() => userDisclosure.onClose('createUser')} />
+            <UpdateUser isOpen={userDisclosure.isOpen('updateUser') && clickedRow !== null} onClose={() => userDisclosure.onClose('updateUser')} selectedUser={clickedRow} />
         </div>
     );
 }

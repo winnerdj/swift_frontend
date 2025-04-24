@@ -139,11 +139,12 @@ const UpdateUser: React.FC<UpdateUserProps> = ({ isOpen, onClose, selectedUser }
                                         name='user_status'
                                         render={({ field }) => (
                                             <div className='flex items-center gap-3'>
-                                                <label className='font-bold text-sm'>Status</label>
-                                                <Switch 
-                                                    checked={field.value} 
+                                                <label className='font-bold text-sm'>Status
+                                                <Switch name='user_status'
+                                                    checked={field.value}
                                                     onCheckedChange={(checked) => form.setValue('user_status', checked, { shouldValidate: true })}
                                                 />
+                                                </label>
                                                 <span>{field.value ? 'Active' : 'Inactive'}</span>
                                             </div>
                                         )}
@@ -153,17 +154,19 @@ const UpdateUser: React.FC<UpdateUserProps> = ({ isOpen, onClose, selectedUser }
                                         name='user_role'
                                         render={() => (
                                             <div className='space-y-2 flex flex-col gap-0'>
-                                                <label className='font-bold font-sans text-sm leading-none mr-0 ml-0'>Role</label>
-                                                <APISelect
-                                                    type={'role'}
-                                                    onChange={(selected) => {
-                                                        form.setValue('user_role', selected?.value || '', { shouldValidate: true })
-                                                        setRole(selected)
-                                                    }}
-                                                    value={role}
-                                                    placeholder='Select Role'
-                                                    className='text-sm'
-                                                />
+                                                <label className='font-bold font-sans text-sm leading-none mr-0 ml-0'>Role
+                                                    <APISelect
+                                                        id='user_role'
+                                                        type={'role'}
+                                                        onChange={(selected) => {
+                                                            form.setValue('user_role', selected?.value || '', { shouldValidate: true })
+                                                            setRole(selected)
+                                                        }}
+                                                        value={role}
+                                                        placeholder='Select Role'
+                                                        className='text-sm'
+                                                    />
+                                                </label>
                                             </div>
                                         )}
                                     />

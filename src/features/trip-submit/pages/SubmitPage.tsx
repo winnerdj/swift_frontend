@@ -14,10 +14,9 @@ interface SubmitPageProps {
 }
 
 const SubmitPage: React.FC<SubmitPageProps> = () => {
-  const dispatch = useAppDispatch(); 
+  const dispatch = useAppDispatch();
   const trip = useAppSelector(getTrip);
   const [onExecuteTrip, {isLoading}] = useExecuteTripMutation();
-   
 
   // React.useEffect(() => {
   //     // const timeOut = setTimeout(()=> {
@@ -28,7 +27,7 @@ const SubmitPage: React.FC<SubmitPageProps> = () => {
   //     //         vehicle_id:     null,
   //     //         vehicle_type:   null,
   //     //     }))
-         
+
   //     // },30000)
 
   //     //return () => clearTimeout(timeOut)
@@ -102,11 +101,10 @@ const SubmitPage: React.FC<SubmitPageProps> = () => {
                           Please take a photo of this screen.
                       </div> : null
                     }
-                   
                     <div className='flex flex-1 justify-end items-end w-full'>
                       <Button isLoading={isLoading} onClick={handleExecuteTrip}>{
                         trip.trip_status === 'EXECUTED' ?
-                        'Done' : 'Execute' 
+                        'Done' : 'Execute'
                       }</Button>
                     </div>
                   </div>
@@ -114,7 +112,6 @@ const SubmitPage: React.FC<SubmitPageProps> = () => {
                   <div className='flex h-full justify-center items-center'>
                       <img className='h-20' src={kli} alt='kli_logo'/>
                   </div>
-                
                 }
             </div>
         </div>

@@ -3,7 +3,7 @@ import React, { createContext, Dispatch, SetStateAction } from 'react'
 interface SelectedUserInterface {
     id:string;
     username: string;
-    app_key: string; 
+    app_key: string;
     is_active: number;
     role_name: string;
     role_id: string;

@@ -5,6 +5,7 @@ import { selectType } from './types';
 import React from 'react';
 
 interface APISelectProps {
+    id: string;
     type: routes;
     value: selectType | null;
     name?: string;

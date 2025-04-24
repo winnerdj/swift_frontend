@@ -4,6 +4,7 @@ import {  FieldValues, UseControllerProps, useController } from 'react-hook-form
 import { FormControl, FormItem, FormLabel} from '../ui/form';
 
 type FormAPISelectProps<T extends FieldValues> = UseControllerProps<T> & {
+    id: string;
     type: routes;
     label: string;
     placeholder?: string;
@@ -12,7 +13,7 @@ type FormAPISelectProps<T extends FieldValues> = UseControllerProps<T> & {
 function FormAPISelect <T extends FieldValues>({type,label,placeholder,...props}: FormAPISelectProps<T>) {
     const {field,fieldState} = useController<T>({
         ...props
-    }) 
+    })
 
     return <FormItem className="flex flex-col gap-0">
             <FormLabel className={`font-semibold font-sans ${fieldState.error ? 'text-red-500' : ''}`}>
@@ -20,6 +21,7 @@ function FormAPISelect <T extends FieldValues>({type,label,placeholder,...props}
             </FormLabel>
             <FormControl>
                 <APISelect
+                    id={props.id}
                     type={type}
                     value={field.value}
                     placeholder={placeholder}

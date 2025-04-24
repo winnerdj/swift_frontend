@@ -98,8 +98,9 @@ function DataTable<TData, TValue>({ columns, data, ...props }: DatatableProps<TD
         <div className="pl-2 pr-3">
             <div className="flex justify-between pb-3">
                 <div className="flex gap-1">
-                    <Input className="h-8" 
-                        placeholder="Search" 
+                    <Input className="h-8"
+                        id="searchBox"
+                        placeholder="Search"
                         value={search} /* Bind value */
                         onChange={(e) => {
                             setSearch(e.target.value); /* Update local state */

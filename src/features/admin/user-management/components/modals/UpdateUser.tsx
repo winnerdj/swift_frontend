@@ -16,7 +16,7 @@ import { useUpdateUserMutation } from '@/lib/redux/api/user.api';
 import { userTableType } from '../../types';
 import * as yup from 'yup';
 
-interface  UpdateUserProps {
+interface UpdateUserProps {
     onClose: () => void;
     isOpen: boolean;
     selectedUser: userTableType | null;

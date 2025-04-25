@@ -3,6 +3,7 @@ import App from '@/App';
 import { Auth } from "@/features/auth";
 import Link from '@/components/Link';
 import { User } from "@/features/admin/user-management";
+import { Role } from "@/features/admin/role-management";
 import { PvmDashboard } from "@/features/pvm-dashboard";
 
 const route = createBrowserRouter([
@@ -21,7 +22,7 @@ const route = createBrowserRouter([
             },
             {
                 path:'/role',
-                element: <>Role</>,
+                element: <Role/>,
                 handle: {
                     crumb: () => (
                         <Link path='/role' label="Role Management"/>

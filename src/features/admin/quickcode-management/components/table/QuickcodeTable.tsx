@@ -1,37 +1,35 @@
 import APITable from '@/components/table/APITable';
 import { ColumnDef, RowSelectionState } from '@tanstack/react-table';
 import React, { useCallback } from 'react';
-import { userTableType } from '../../types';
+import { quickcodeTableType } from '../../types';
 import moment from 'moment';
 // import { Checkbox } from '@/components/ui/checkbox'
 import { Button } from '@/components/ui/button'
 import { Pencil } from 'lucide-react';
 
-interface UserTableProps {
+interface QuickcodeTableProps {
     rowSelection: RowSelectionState;
     setRowSelection: React.Dispatch<React.SetStateAction<RowSelectionState>>;
-    selectedRows: userTableType[];
-    setSelectedRows: React.Dispatch<React.SetStateAction<userTableType[]>>;
-    clickedRow: userTableType | null;
-    setClickedRow : React.Dispatch<React.SetStateAction<userTableType | null>>;
+    selectedRows: quickcodeTableType[];
+    setSelectedRows: React.Dispatch<React.SetStateAction<quickcodeTableType[]>>;
+    clickedRow: quickcodeTableType | null;
+    setClickedRow : React.Dispatch<React.SetStateAction<quickcodeTableType | null>>;
     openUpdateModal: () => void;
 }
 
-const UserTable: React.FC<UserTableProps> = ({
+const QuickcodeTable: React.FC<QuickcodeTableProps> = ({
     rowSelection,
     setRowSelection,
-    // selectedRows,
     setSelectedRows,
-    // clickedRow,
     setClickedRow,
     openUpdateModal
 }) => {
 
-        const handleSelectedRowsChange = useCallback((rows: userTableType[]) => {
-            setSelectedRows(rows);
-        }, [setSelectedRows]);
+    const handleSelectedRowsChange = useCallback((rows: quickcodeTableType[]) => {
+        setSelectedRows(rows);
+    }, [setSelectedRows]);
 
-    const columns: ColumnDef<userTableType>[] = [
+    const columns: ColumnDef<quickcodeTableType>[] = [
         // {
         //     id: 'select', // Unique ID for selection column
         //     header: ({ table }) => (
@@ -60,8 +58,8 @@ const UserTable: React.FC<UserTableProps> = ({
                     <Button variant={'ghost'} className='p-2 h-7 hover:bg-gray-400 gap-1.5'
                         onClick={() => {
                             setClickedRow(row.original);
-                            // Call updateUser.onOpen() to show the modal
-                            // updateUser.onOpen();
+                            // Call updateQuickcode.onOpen() to show the modal
+                            // updateQuickcode.onOpen();
                             openUpdateModal()}}
                     ><Pencil/>
                     </Button>
@@ -70,42 +68,45 @@ const UserTable: React.FC<UserTableProps> = ({
             enableSorting: false,
         },
         {
-            accessorKey: 'user_id',
-            header: 'User ID',
-            cell: ({ row }) => (
-                // <span className="text-sky-700 cursor-pointer hover:underline" >
-                    <div>{row?.original?.user_id}</div>
-                // </span>
-            )
+            accessorKey: 'qc_type',
+            header: 'Quickcode Type',
         },
         {
-            accessorKey: 'user_role',
-            header: 'Role',
+            accessorKey: 'qc_code',
+            header: 'Quick Code ',
         },
         {
-            accessorKey: 'user_status',
+            accessorKey: 'qc_status',
             header: 'Status',
-            cell: props => props.getValue() === 1 ? 'Active' : 'Inactive'
+            cell: props => props.getValue() ? 'Active' : 'Inactive'
         },
         {
-            accessorKey: 'user_email',
-            header: 'Email Address'
+            accessorKey: 'qc_description',
+            header: 'Description'
         },
         {
-            accessorKey: 'user_first_name',
-            header: 'First Name'
+            accessorKey: 'qc_alternative_code1',
+            header: 'Alt Code1'
         },
         {
-            accessorKey: 'user_middle_name',
-            header: 'Middle Name'
+            accessorKey: 'qc_alternative_code2',
+            header: 'Alt Code2'
         },
         {
-            accessorKey: 'user_last_name',
-            header: 'Last Name'
+            accessorKey: 'qc_alternative_code3',
+            header: 'Alt Code3'
         },
         {
-            accessorKey: 'user_contact_no',
-            header: 'Contact No'
+            accessorKey: 'qc_remarks1',
+            header: 'Remarks1'
+        },
+        {
+            accessorKey: 'qc_remarks2',
+            header: 'Remarks2'
+        },
+        {
+            accessorKey: 'qc_remarks3',
+            header: 'Remarks3'
         },
         {
             accessorKey: 'createdBy',
@@ -137,7 +138,7 @@ const UserTable: React.FC<UserTableProps> = ({
         <div>
             <APITable
                 columns={columns}
-                route='/user'
+                route='/quickcode'
                 rowSelection={rowSelection}
                 setRowSelection={setRowSelection}
                 onSelectedRowsChange={handleSelectedRowsChange}
@@ -146,4 +147,4 @@ const UserTable: React.FC<UserTableProps> = ({
     );
 }
 
-export default UserTable;
+export default QuickcodeTable;

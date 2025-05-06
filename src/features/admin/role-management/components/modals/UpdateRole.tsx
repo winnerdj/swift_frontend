@@ -32,6 +32,7 @@ type UpdateRoleType = yup.InferType<typeof updateRoleSchema>;
 
 const UpdateRole: React.FC<UpdateRoleProps> = ({ isOpen, onClose, selectedRole }) => {
     const [updateRole, updateRoleProps] = useUpdateRoleMutation();
+
     const form = useForm<UpdateRoleType>({
         resolver: yupResolver(updateRoleSchema),
         defaultValues: {
@@ -44,7 +45,7 @@ const UpdateRole: React.FC<UpdateRoleProps> = ({ isOpen, onClose, selectedRole }
         }
     });
 
-    // Effect to update form values when selectedRole changes
+    /** Effect to update form values when selectedRole changes */
     React.useEffect(() => {
         if(selectedRole) {
             form.reset({
@@ -54,9 +55,9 @@ const UpdateRole: React.FC<UpdateRoleProps> = ({ isOpen, onClose, selectedRole }
                 role_remarks1: selectedRole.role_remarks1 || '',
                 role_remarks2: selectedRole.role_remarks2 || '',
                 role_remarks3: selectedRole.role_remarks3 || ''
-            });
+            })
         }
-    }, [selectedRole, form]);
+    }, [selectedRole, form])
 
     const handleSubmit = async (data: UpdateRoleType) => {
         console.log("Submitting data:", data); // Debugging

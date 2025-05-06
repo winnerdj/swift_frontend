@@ -20,7 +20,7 @@ type updateRole = {
 export const { useCreateRoleMutation, useUpdateRoleMutation } = apiSlice.injectEndpoints({
     endpoints: builder => ({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        createRole: builder.mutation<any,createRole>({
+        createRole: builder.mutation<any, createRole>({
             query: (args) => ({
                 url: '/role',
                 method: 'POST',

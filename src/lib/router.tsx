@@ -4,6 +4,9 @@ import { Auth } from "@/features/auth";
 import Link from '@/components/Link';
 import { User } from "@/features/admin/user-management";
 import { Role } from "@/features/admin/role-management";
+import { Quickcode } from "@/features/admin/quickcode-management";
+// import { Service } from "@/features/admin/service-management";
+
 import { PvmDashboard } from "@/features/pvm-dashboard";
 
 const route = createBrowserRouter([
@@ -29,6 +32,24 @@ const route = createBrowserRouter([
                     )
                 }
             },
+            {
+                path:'/quickcode',
+                element: <Quickcode/>,
+                handle: {
+                    crumb: () => (
+                        <Link path='/quickcode' label="QuickCode Management"/>
+                    )
+                }
+            },
+            // {
+            //     path:'/service',
+            //     element: <Service/>,
+            //     handle: {
+            //         crumb: () => (
+            //             <Link path='/service' label="Service Management"/>
+            //         )
+            //     }
+            // },
             {
                 path:'/pvm/dashboard',
                 element: <PvmDashboard/>,

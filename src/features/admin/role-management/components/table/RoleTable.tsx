@@ -1,6 +1,6 @@
 import APITable from '@/components/table/APITable';
 import { ColumnDef, RowSelectionState } from '@tanstack/react-table';
-import React from 'react';
+import React, { useCallback } from 'react';
 import { roleTableType } from '../../types';
 import moment from 'moment';
 // import { Checkbox } from '@/components/ui/checkbox'
@@ -20,12 +20,14 @@ interface RoleTableProps {
 const RoleTable: React.FC<RoleTableProps> = ({
     rowSelection,
     setRowSelection,
-    // selectedRows,
     setSelectedRows,
-    // clickedRow,
     setClickedRow,
     openUpdateModal
 }) => {
+
+    const handleSelectedRowsChange = useCallback((rows: roleTableType[]) => {
+        setSelectedRows(rows);
+    }, [setSelectedRows]);
 
     const columns: ColumnDef<roleTableType>[] = [
         // {
@@ -123,7 +125,7 @@ const RoleTable: React.FC<RoleTableProps> = ({
                 route='/role'
                 rowSelection={rowSelection}
                 setRowSelection={setRowSelection}
-                onSelectedRowsChange={setSelectedRows}
+                onSelectedRowsChange={handleSelectedRowsChange}
             />
         </div>
     );

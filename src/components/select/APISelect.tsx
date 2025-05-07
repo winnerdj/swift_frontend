@@ -7,6 +7,7 @@ import React from 'react';
 interface APISelectProps {
     id: string;
     type: routes;
+    qc_type?: string;
     value: selectType | null;
     name?: string;
     placeholder?: string;
@@ -18,7 +19,7 @@ interface APISelectProps {
 const APISelect: React.FC<APISelectProps> = ({ isClearable = true, className, ...props }) => {
     const { data, isLoading } = useGetSelectDataQuery({
         route: props.type,
-        filters: {}
+        filters: { qc_type: props.qc_type }
     }) as { data?: { data: selectType[] } | selectType[]; isLoading: boolean };
 
     const selectData = Array.isArray(data) ? data : (data?.data ?? []);
@@ -51,7 +52,7 @@ const APISelect: React.FC<APISelectProps> = ({ isClearable = true, className, ..
             placeholder={props.placeholder}
             isClearable={isClearable}
             isLoading={isLoading}
-            className={className} /** Pass the className dynamically */
+            className={className}
         />
     );
 }

@@ -19,6 +19,7 @@ interface UpdateQuickcodeProps {
 }
 
 const updateQuickcodeSchema = yup.object({
+    qc_id: yup.string().required('Quickcode ID is required'),
     qc_type: yup.string().required('Quickcode type is required'),
     qc_code: yup.string().required('Quickcode is required'),
     qc_status: yup.boolean().required('Quickcode is required'),
@@ -39,6 +40,7 @@ const UpdateQuickcode: React.FC<UpdateQuickcodeProps> = ({ isOpen, onClose, sele
     const form = useForm<UpdateQuickcodeType>({
         resolver: yupResolver(updateQuickcodeSchema),
         defaultValues: {
+            qc_id: '',
             qc_type: '',
             qc_code: '',
             qc_status: false,
@@ -56,6 +58,7 @@ const UpdateQuickcode: React.FC<UpdateQuickcodeProps> = ({ isOpen, onClose, sele
     React.useEffect(() => {
         if(selectedQuickcode) {
             form.reset({
+                qc_id: selectedQuickcode.qc_id || '',
                 qc_type: selectedQuickcode.qc_type || '',
                 qc_code: selectedQuickcode.qc_code || '',
                 qc_status: selectedQuickcode.qc_status || true,
@@ -74,6 +77,7 @@ const UpdateQuickcode: React.FC<UpdateQuickcodeProps> = ({ isOpen, onClose, sele
         console.log("Submitting selectedQuickcode", data); // Debugging
 
         await updateQuickcode({
+            qc_id: data.qc_id ?? '',
             qc_type: data.qc_type ?? '',
             qc_code: data.qc_code ?? '',
             qc_status: data.qc_status ?? false,

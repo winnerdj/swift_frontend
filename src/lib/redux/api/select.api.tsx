@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { apiSlice } from '../api';
 
-export type routes = 'role'
+export type routes = 'role' | 'quickcode'
 
 export const {
     useGetSelectDataQuery,
@@ -14,7 +14,7 @@ export const {
             filters?: any;
         }>({
             query: (args) => ({
-                url: '/select/'+args.route,
+                url: `/select/${args.route}`,
                 method:'GET',
                 params:{
                     ...args.filters

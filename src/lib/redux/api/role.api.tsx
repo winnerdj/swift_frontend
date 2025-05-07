@@ -9,6 +9,7 @@ type createRole = {
 }
 
 type updateRole = {
+    role_id: string;
     role_name: string;
     role_status: boolean;
     role_description: string;

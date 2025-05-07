@@ -49,7 +49,6 @@ const CreateQuickcode: React.FC<CreateQuickcodeProps> = (props) => {
     });
 
     const handleSubmit = async (data: CreateQuickcodeType) => {
-        // console.log("quickcode:", quickcode); // Debugging
         console.log("Submitting data:", data); // Debugging
 
         await createQuickcode({

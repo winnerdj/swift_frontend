@@ -13,6 +13,7 @@ type createQuickcode = {
 }
 
 type updateQuickcode = {
+    qc_id: string;
     qc_type: string;
     qc_code: string;
     qc_status: boolean;

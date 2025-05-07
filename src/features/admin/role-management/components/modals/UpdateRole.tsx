@@ -19,7 +19,7 @@ interface UpdateRoleProps {
 }
 
 const updateRoleSchema = yup.object({
-    // role_id: yup.string().required('Role ID is required'),
+    role_id: yup.string().required('Role ID is required'),
     role_name: yup.string().required('Role is required'),
     role_status: yup.boolean().required('Status is required'),
     role_description: yup.string().nullable(),
@@ -36,6 +36,7 @@ const UpdateRole: React.FC<UpdateRoleProps> = ({ isOpen, onClose, selectedRole }
     const form = useForm<UpdateRoleType>({
         resolver: yupResolver(updateRoleSchema),
         defaultValues: {
+            role_id: '',
             role_name: '',
             role_status: false,
             role_description: '',
@@ -49,6 +50,7 @@ const UpdateRole: React.FC<UpdateRoleProps> = ({ isOpen, onClose, selectedRole }
     React.useEffect(() => {
         if(selectedRole) {
             form.reset({
+                role_id: selectedRole.role_id || '',
                 role_name: selectedRole.role_name || '',
                 role_status: selectedRole.role_status ?? true,
                 role_description: selectedRole.role_description || '',
@@ -63,6 +65,7 @@ const UpdateRole: React.FC<UpdateRoleProps> = ({ isOpen, onClose, selectedRole }
         console.log("Submitting data:", data); // Debugging
 
         await updateRole({
+            role_id: data.role_id ?? '',
             role_name: data.role_name ?? '',
             role_status: data.role_status,
             role_description: data.role_description ?? '',

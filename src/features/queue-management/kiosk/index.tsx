@@ -1,0 +1,1 @@
+export { default as Kiosk } from './pages/Kiosk'

@@ -34,9 +34,13 @@ type updateService = {
     service_remarks3 : string;
 }
 
-export const { useCreateServiceMutation, useUpdateServiceMutation } = apiSlice.injectEndpoints({
+type getService = {
+    order ?: string;
+    filters ?: {};
+}
+
+export const { useCreateServiceMutation, useUpdateServiceMutation, useGetServiceQuery } = apiSlice.injectEndpoints({
     endpoints: builder => ({
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         createService: builder.mutation<any, createService>({
             query: (args) => ({
                 url: '/service',
@@ -52,6 +56,17 @@ export const { useCreateServiceMutation, useUpdateServiceMutation } = apiSlice.i
                 body: args,
             }),
             invalidatesTags:['Table']
+        }),
+        getService: builder.query<any, getService>({
+            query: (args) => ({
+                url: '/service/location',
+                method: 'GET',
+                params:{
+                    order: args.order,
+                    ...args.filters
+                }
+            }),
+            providesTags: ['Table']
         })
     })
 })

@@ -16,7 +16,7 @@ import { LucideIcon } from "lucide-react"; // ✅ Import the type
 interface SidebarAdminProps {}
 
 const SidebarAdmin: React.FC<SidebarAdminProps> = () => {
-    const { open, setOpen } = useSidebar(); // Access sidebar state
+    const { setOpen } = useSidebar(); // Access sidebar state
 
     // ✅ Group modules by module_group
     let moduleHeader = defaultModules.reduce<Record<string, moduleTypes[]>>(

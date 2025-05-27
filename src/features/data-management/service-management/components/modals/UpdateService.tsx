@@ -12,7 +12,6 @@ import { useUpdateServiceMutation } from '@/lib/redux/api/service.api';
 import { serviceTableType } from '../../types';
 import * as yup from 'yup';
 import APISelect from '@/components/select/APISelect';
-import { set } from 'lodash';
 
 interface UpdateServiceProps {
     onClose: () => void;
@@ -67,8 +66,8 @@ const UpdateService: React.FC<UpdateServiceProps> = ({ isOpen, onClose, selected
     /** Effect to update form values when selectedService changes */
     React.useEffect(() => {
         if(selectedService) {
-            setServiceLoc({label: selectedService.qc_service_location_desc, value: selectedService.service_location})
-            setServiceDiscipline({label: selectedService.qc_service_discipline_desc, value: selectedService.service_discipline})
+            setServiceLoc({label: `${selectedService.qc_service_location_desc} : ${selectedService.qc_service_location}`, value: selectedService.service_location})
+            setServiceDiscipline({label: `${selectedService.qc_service_discipline} : ${selectedService.qc_service_discipline_desc}`, value: selectedService.service_discipline})
             form.reset({
                 service_id : selectedService.service_id ?? '',
                 service_name : selectedService.service_name ?? '',

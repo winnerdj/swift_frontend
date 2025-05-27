@@ -2,10 +2,11 @@ import {createBrowserRouter} from "react-router-dom";
 import App from '@/App';
 import { Auth } from "@/features/auth";
 import Link from '@/components/Link';
-import { User } from "@/features/admin/user-management";
-import { Role } from "@/features/admin/role-management";
-import { Quickcode } from "@/features/admin/quickcode-management";
-import { Service } from "@/features/admin/service-management";
+import { User } from "@/features/administration/user-management";
+import { Role } from "@/features/administration/role-management";
+import { Quickcode } from "@/features/data-management/quickcode-management";
+import { Service } from "@/features/data-management/service-management";
+import { Kiosk } from "@/features/queue-management/kiosk";
 
 import { PvmDashboard } from "@/features/pvm-dashboard";
 
@@ -19,7 +20,7 @@ const route = createBrowserRouter([
                 element: <User/>,
                 handle: {
                     crumb: () => (
-                        <Link path='/user' label="User Management"/>
+                        <Link path='/user' label="User Administration"/>
                     )
                 }
             },
@@ -28,7 +29,7 @@ const route = createBrowserRouter([
                 element: <Role/>,
                 handle: {
                     crumb: () => (
-                        <Link path='/role' label="Role Management"/>
+                        <Link path='/role' label="Role Administration"/>
                     )
                 }
             },
@@ -47,6 +48,15 @@ const route = createBrowserRouter([
                 handle: {
                     crumb: () => (
                         <Link path='/service' label="Service Management"/>
+                    )
+                }
+            },
+            {
+                path:'/kiosk',
+                element: <Kiosk/>,
+                handle: {
+                    crumb: () => (
+                        <Link path='/kiosk' label="Kiosk"/>
                     )
                 }
             },

@@ -22,14 +22,14 @@ const defaultModules: moduleTypes[] = [
         icon: 'UsersRound'
     },
     {
-        module_group: 'Administration',
+        module_group: 'Data Management',
         module_key: 'quick_code_management',
         module_name: 'Quick Code',
         route: '/quickcode',
         icon: 'ScrollText'
     },
     {
-        module_group: 'Administration',
+        module_group: 'Data Management',
         module_key: 'service_management',
         module_name: 'Service',
         route: '/service',
@@ -40,7 +40,7 @@ const defaultModules: moduleTypes[] = [
         module_key: 'kiosk',
         module_name: 'Kiosk',
         route: '/kiosk',
-        icon: 'ListEnd'
+        icon: 'ReceiptText'
     },
     {
         module_group: 'Queue',
@@ -52,9 +52,23 @@ const defaultModules: moduleTypes[] = [
     {
         module_group: 'Queue',
         module_key: 'Serve',
-        module_name: 'Service',
+        module_name: 'Counter Service',
         route: '/service',
         icon: 'HandPlatter'
+    },
+    {
+        module_group: 'Transaction',
+        module_key: 'ticket',
+        module_name: 'Ticket',
+        route: '/dashboard',
+        icon: 'Ticket'
+    },
+    {
+        module_group: 'Transaction',
+        module_key: 'userActivity',
+        module_name: 'User Activity',
+        route: '/user-activity',
+        icon: 'BookUser'
     },
     {
         module_group: 'Dashboard & Reports',

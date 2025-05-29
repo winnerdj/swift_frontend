@@ -12,6 +12,12 @@ interface LoginResponse {
         expiry: string | undefined;
         "x-access-token": string | undefined;
     };
+    userDetails?: {
+        user_role: string | undefined;
+        user_email: string | undefined;
+        user_location: string | undefined;
+        user_name: string | undefined;
+    }
 }
 
 export const { useLoginMutation } = apiSlice.injectEndpoints({

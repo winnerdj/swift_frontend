@@ -7,6 +7,7 @@ import { Role } from "@/features/administration/role-management";
 import { Quickcode } from "@/features/data-management/quickcode-management";
 import { Service } from "@/features/data-management/service-management";
 import { Kiosk } from "@/features/queue-management/kiosk";
+import { QueueDisplay } from "@/features/queue-management/queue-display";
 
 import { PvmDashboard } from "@/features/pvm-dashboard";
 
@@ -57,6 +58,15 @@ const route = createBrowserRouter([
                 handle: {
                     crumb: () => (
                         <Link path='/kiosk' label="Kiosk"/>
+                    )
+                }
+            },
+            {
+                path:'/queue-display',
+                element: <QueueDisplay/>,
+                handle: {
+                    crumb: () => (
+                        <Link path='/queue-display' label="Queue Display"/>
                     )
                 }
             },

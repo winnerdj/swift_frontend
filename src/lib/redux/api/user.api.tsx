@@ -5,6 +5,7 @@ type createUser = {
     user_role: string;
     // user_password: string;
     // user_status: string;
+    user_location: string;
     user_email: string;
     user_first_name: string;
     user_middle_name: string;
@@ -19,6 +20,7 @@ type updateUser = {
     user_role: string;
     // user_password: string;
     user_status: boolean;
+    user_location: string;
     user_email: string;
     user_first_name: string;
     user_middle_name: string;

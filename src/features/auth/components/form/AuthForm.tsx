@@ -47,7 +47,13 @@ const AuthForm: React.FC = () => {
                         app_key: result.token?.app_key,
                         expiry: result.token?.expiry,
                         "x-access-token": result?.token?.["x-access-token"]
-                    }
+                    },
+                    userDetails: {
+                        user_role: result?.userDetails?.user_role,
+                        user_email: result?.userDetails?.user_email,
+                        user_location: result?.userDetails?.user_location,
+                        user_name: result?.userDetails?.user_name,
+                    },
                 })
             );
         } catch (error) {

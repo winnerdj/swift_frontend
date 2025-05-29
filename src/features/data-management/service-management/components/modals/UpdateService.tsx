@@ -142,6 +142,21 @@ const UpdateService: React.FC<UpdateServiceProps> = ({ isOpen, onClose, selected
                                     />
                                     <FormField
                                         control={form.control}
+                                        name='service_status'
+                                        render={({ field }) => (
+                                            <div className='flex items-center gap-3'>
+                                                <label className='font-bold text-sm'>Status
+                                                <Switch name='service_status'
+                                                    checked={field.value}
+                                                    onCheckedChange={(checked) => form.setValue('service_status', checked, { shouldValidate: true })}
+                                                />
+                                                </label>
+                                                <span>{field.value ? 'Active' : 'Inactive'}</span>
+                                            </div>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
                                         name='service_location'
                                         render={() => (
                                             <div className='space-y-2 flex flex-col gap-0'>

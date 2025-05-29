@@ -49,10 +49,10 @@ const AuthForm: React.FC<AuthFormProps> = () => {
         .unwrap()
         .then((result) => {
             dispatch(setLogin({
-                 username: result.username,
-                 token: result.token,
-                 role_name: result.role.role_name,
-                 role_id: result.role.role_id
+                username: result.username,
+                token: result.token,
+                role_name: result.role.role_name,
+                role_id: result.role.role_id
             }))
         })
     }

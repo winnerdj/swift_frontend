@@ -26,9 +26,9 @@ const persistConfig = {
 export const store = configureStore({
   reducer: combineReducers({
     [apiSlice.reducerPath]: apiSlice.reducer,
-    auth: persistReducer(persistConfig, authSlice),
-    tripSlice: tripSlice,
-    pvmDashboardSlice: pvmDashboardSlice
+    auth                  : persistReducer(persistConfig, authSlice),
+    tripSlice             : tripSlice,
+    pvmDashboardSlice     : pvmDashboardSlice
 
   }),
   middleware: (getDefaultMiddleware) =>

@@ -27,8 +27,9 @@ const updateUserSchema = yup.object({
     user_role: yup.string().required('Role is required'),
     // user_password: yup.string().required('Password is required'),
     user_status: yup.boolean().required('Status is required'),
-    user_email: yup.string().email('Invalid email').required('Email is required'),
     user_name: yup.string().required('Username is required'),
+    user_location: yup.string().required('Location is required'),
+    user_email: yup.string().email('Invalid email').required('Email is required'),
     user_first_name: yup.string().required('First name is required'),
     user_middle_name: yup.string().nullable(),
     user_last_name: yup.string().required('Last name is required'),
@@ -43,6 +44,7 @@ type UpdateUserType = yup.InferType<typeof updateUserSchema>;
 const UpdateUser: React.FC<UpdateUserProps> = ({ isOpen, onClose, selectedUser }) => {
     const [updateUser, updateUserProps] = useUpdateUserMutation();
     const [role, setRole] = React.useState<{ label: string; value: string } | null>(null);
+    const [userLocation, setUserLocation] = React.useState<{label: string; value:string} | null> (null)
 
     const form = useForm<UpdateUserType>({
         resolver: yupResolver(updateUserSchema),
@@ -50,6 +52,7 @@ const UpdateUser: React.FC<UpdateUserProps> = ({ isOpen, onClose, selectedUser }
             user_name: '',
             user_role: '',
             user_status: false,
+            user_location: '',
             user_email: '',
             user_first_name: '',
             user_middle_name: null,
@@ -67,6 +70,7 @@ const UpdateUser: React.FC<UpdateUserProps> = ({ isOpen, onClose, selectedUser }
                 user_name: selectedUser.user_name || '',
                 user_role: selectedUser.user_role || '',
                 user_status: selectedUser.user_status ?? true,
+                user_location: selectedUser.user_location || '',
                 user_email: selectedUser.user_email || '',
                 user_first_name: selectedUser.user_first_name || '',
                 user_middle_name: selectedUser.user_middle_name || '',
@@ -83,17 +87,17 @@ const UpdateUser: React.FC<UpdateUserProps> = ({ isOpen, onClose, selectedUser }
     const handleSubmit = async (data: UpdateUserType) => {
         console.log("Submitting data:", data); // Debugging
 
-        if (!role?.value) {
+        if(!role?.value) {
             toast.error("User role is required");
             return;
         }
-        console.log('xxzz', data)
 
         await updateUser({
             user_name: data.user_name ?? '',
             user_role: role?.value ?? '',
             user_status: data.user_status,
             user_email: data.user_email ?? '',
+            user_location: data.user_location ?? '',
             user_first_name: data.user_first_name,
             user_middle_name: data.user_middle_name ?? '',
             user_last_name: data.user_last_name,
@@ -167,6 +171,27 @@ const UpdateUser: React.FC<UpdateUserProps> = ({ isOpen, onClose, selectedUser }
                                                         className='text-sm'
                                                     />
                                                 </label>
+                                            </div>
+                                        )}
+                                    />
+                                    <FormField
+                                        control={form.control}
+                                        name='user_location'
+                                        render={() => (
+                                            <div className='space-y-2 flex flex-col gap-0'>
+                                                <label className='font-bold font-sans text-sm leading-none mr-0 ml-0'>Location</label>
+                                                <APISelect
+                                                    id='user_location'
+                                                    type={'quickcode'}
+                                                    qc_type={'location'}
+                                                    onChange={(selected) => {
+                                                        form.setValue('user_location', selected?.value || '', { shouldValidate: true })
+                                                        setUserLocation(selected)
+                                                    }}
+                                                    value={userLocation}
+                                                    placeholder='Select location'
+                                                    className='text-sm'
+                                                />
                                             </div>
                                         )}
                                     />

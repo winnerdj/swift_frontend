@@ -11,6 +11,7 @@ export type userTableType = {
     // user_password: string;
     user_status: boolean;
     user_name: string;
+    user_location: string;
     user_email: string;
     user_first_name: string;
     user_middle_name: string;

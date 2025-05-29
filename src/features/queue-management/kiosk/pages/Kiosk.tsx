@@ -2,21 +2,20 @@ import React, { useState, useEffect, useRef } from 'react';
 import useDisclosure from '@/hooks/useDisclosure';
 import { Button } from '@/components/ui/button'
 import CreatePodTicket from '../components/modals/CreatePodTicket';
-// import { KioskContextProvider } from '../components/context/KioskContext';
-import { UserRoundPlus, Maximize } from 'lucide-react' // Import Maximize for fullscreen icon
-// import { RowSelectionState } from '@tanstack/react-table';
-import { ticketType } from '../types';
+import { Maximize } from 'lucide-react' // Import Maximize for fullscreen icon
 import { useGetServiceQuery } from '@/lib/redux/api/service.api';
-
-interface KioskProps {
-}
+import { getUserDetails } from "@/lib/redux/slices/auth.slice";
+import { useAppSelector } from "@/hooks/redux.hooks";
 
 interface Service {
-    id: number;
-    name: string;
+    service_id: string;
+    service_name: string;
+    service_location: string;
+    service_status: number;
 }
 
-const Kiosk: React.FC<KioskProps> = () => {
+const Kiosk: React.FC = () => {
+    const userSessionDetails = useAppSelector(getUserDetails);
     const kioskDisclosure = useDisclosure();
     const [selectedService, setSelectedService] = useState<Service | null>(null);
     const [ticketNumber, setTicketNumber] = useState<number | null>(null);
@@ -24,14 +23,15 @@ const Kiosk: React.FC<KioskProps> = () => {
     const [isFullscreen, setIsFullscreen] = useState(false);
     const kioskRef = useRef<HTMLDivElement>(null);
 
-    const { data = {}, isFetching, isLoading, isSuccess, refetch } = useGetServiceQuery({
+    const { data = {}, isLoading, isSuccess } = useGetServiceQuery({
         filters: {
-            service_location: 'location@Zeus'
+            service_location: userSessionDetails?.user_location || 'undefined',
+            service_status: 1
         }
     });
 
     useEffect(() => {
-        if (isSuccess && data) {
+        if(isSuccess && data) {
             setServices(data.rows);
         }
     }, [data, isSuccess]);
@@ -47,10 +47,10 @@ const Kiosk: React.FC<KioskProps> = () => {
 
     const toggleFullscreen = () => {
         const element = kioskRef.current;
-        if (!element) return;
+        if(!element) return;
 
-        if (!document.fullscreenElement) {
-            if (element.requestFullscreen) {
+        if(!document.fullscreenElement) {
+            if(element.requestFullscreen) {
                 element.requestFullscreen()
                     .then(() => {
                         setIsFullscreen(true);
@@ -60,7 +60,7 @@ const Kiosk: React.FC<KioskProps> = () => {
                     });
             }
         } else {
-            if (document.exitFullscreen) {
+            if(document.exitFullscreen) {
                 document.exitFullscreen()
                     .then(() => {
                         setIsFullscreen(false);
@@ -87,14 +87,6 @@ const Kiosk: React.FC<KioskProps> = () => {
         >
             {/* HEADER */}
             <div className='flex w-full items-center justify-end rounded-xs p-3 h-12 gap-x-4 bg-gray-50 shadow-2xs'>
-                <Button
-                    variant={'ghost'}
-                    className='p-2 h-7 hover:bg-gray-400 gap-1.5'
-                    onClick={() => kioskDisclosure.onOpen('createKiosk')}
-                >
-                    <UserRoundPlus />
-                    Create Kiosk
-                </Button>
                 <Button
                     variant="ghost"
                     className="p-2 h-7 hover:bg-gray-400"

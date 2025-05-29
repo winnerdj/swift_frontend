@@ -46,7 +46,7 @@ const defaultModules: moduleTypes[] = [
         module_group: 'Queue',
         module_key: 'Queue_display',
         module_name: 'Queue Display',
-        route: '/queue_display',
+        route: '/queue-display',
         icon: 'Tv'
     },
     {

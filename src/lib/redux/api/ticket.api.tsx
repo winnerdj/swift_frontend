@@ -28,11 +28,26 @@ type updateTicket = {
     ticket_remarks3 : string;
 }
 
+type getTicket = {
+    filters?: any;
+}
+
 type getTripDetailsType = {
     tripPlanNo: string;
 }
 
-export const { useCreateTicketMutation, useUpdateTicketMutation, useLazyGetTripDetailsQuery } = apiSlice.injectEndpoints({
+type getTicketByLocationType = {
+    serviceLocation: string;
+}
+
+export const { 
+    useCreateTicketMutation,
+    useUpdateTicketMutation,
+    useGetTicketsQuery,
+    useLazyGetTripDetailsQuery,
+    useGetTicketByLocationQuery,
+    useLazyGetTicketByLocationQuery
+} = apiSlice.injectEndpoints({
     endpoints: builder => ({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         createTicket: builder.mutation<any, createTicket>({
@@ -51,9 +66,23 @@ export const { useCreateTicketMutation, useUpdateTicketMutation, useLazyGetTripD
             }),
             invalidatesTags:['Table']
         }),
+        getTickets: builder.query<any, getTicket>({
+            query: (args) => ({
+                url: '/ticket',
+                method: 'GET',
+                params: args,
+            })
+        }),
         getTripDetails: builder.query<any, getTripDetailsType>({
             query: (args) => ({
                 url: '/ticket/trip-no',
+                method: 'GET',
+                params: args,
+            })
+        }),
+        getTicketByLocation: builder.query<any, getTicketByLocationType>({
+            query: (args) => ({
+                url: '/ticket/queue-display',
                 method: 'GET',
                 params: args,
             })

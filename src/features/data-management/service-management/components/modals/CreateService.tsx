@@ -23,7 +23,7 @@ const createServiceSchema = yup.object({
     service_location : yup.string().required('Service location is required'),
     // service_status : yup.boolean().required('Service status is required'),
     service_description : yup.string().required('Service description is required'),
-    service_discipline : yup.string().required('Service disciplin is required'),
+    service_discipline : yup.string().required('Service discipline is required'),
     no_of_counters : yup.number(),
     counter_prefix : yup.string().required('Counter prefix is required'),
     ticket_number_prefix : yup.string().required('Ticket number prefix is required'),

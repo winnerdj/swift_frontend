@@ -2,7 +2,6 @@ export type ticketType = {
     ticket_id : string;
     ticket_service : string;
     ticket_status : number;
-    ticket_issue_datetime : Date;
     ticket_level : string;
     ticket_parent_reference : string;
     ticket_head_reference : string;

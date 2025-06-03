@@ -1,0 +1,1 @@
+export { default as Ticket } from './pages/Ticket'

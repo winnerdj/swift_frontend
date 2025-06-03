@@ -57,14 +57,14 @@ const defaultModules: moduleTypes[] = [
         icon: 'HandPlatter'
     },
     {
-        module_group: 'Transaction',
+        module_group: 'Transaction Log',
         module_key: 'ticket',
         module_name: 'Ticket',
-        route: '/dashboard',
+        route: '/ticket',
         icon: 'Ticket'
     },
     {
-        module_group: 'Transaction',
+        module_group: 'Transaction Log',
         module_key: 'userActivity',
         module_name: 'User Activity',
         route: '/user-activity',

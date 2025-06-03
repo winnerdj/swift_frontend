@@ -8,6 +8,7 @@ import { Quickcode } from "@/features/data-management/quickcode-management";
 import { Service } from "@/features/data-management/service-management";
 import { Kiosk } from "@/features/queue-management/kiosk";
 import { QueueDisplay } from "@/features/queue-management/queue-display";
+import { Ticket } from "@/features/transaction-logs/ticket-logs";
 
 import { PvmDashboard } from "@/features/pvm-dashboard";
 
@@ -67,6 +68,15 @@ const route = createBrowserRouter([
                 handle: {
                     crumb: () => (
                         <Link path='/queue-display' label="Queue Display"/>
+                    )
+                }
+            },
+            {
+                path:'/ticket',
+                element: <Ticket/>,
+                handle: {
+                    crumb: () => (
+                        <Link path='/ticket' label="Ticket Logs"/>
                     )
                 }
             },

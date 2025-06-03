@@ -12,8 +12,8 @@ interface Ticket {
     service_id: string;
     service_name: string; // Crucial for grouping tickets by service
     ticket_counter?: string; // The counter calling the ticket (optional, as some might not have a counter yet)
-    ticket_status: 'calling' | 'waiting' | 'called' | 'done' | string; // More descriptive statuses or a generic string
-    ticket_issue_datetime: string; // Timestamp when the ticket was created, useful for sorting waiting queue
+    ticket_status: number; // More descriptive statuses or a generic string
+    ticket_create_datetime: string; // Timestamp when the ticket was created, useful for sorting waiting queue
     service_location: string;
     service_description: string;
     service_discipline: string;
@@ -77,12 +77,12 @@ const QueueDisplay: React.FC = () => {
                 }
 
                 // Assign tickets to 'calling' or 'waiting' lists
-                if(ticket.ticket_status !== '10') { // Assuming '10' means waiting
+                if(ticket.ticket_status > 10) { // Assuming '10' means waiting
                     // Ensure ticket_counter exists for calling tickets
                     console.log("Processing ticket:", ticket);
                     if(ticket.ticket_counter) {
                         // In case multiple calling tickets for the same counter exist (shouldn't happen in a real system)
-                        // This will pick the latest one based on array order. For robustness, you might want to sort by ticket_issue_datetime.
+                        // This will pick the latest one based on array order. For robustness, you might want to sort by ticket_create_datetime.
                         grouped[ticket.service_id].currentlyCallingTicketsByCounter[ticket.ticket_counter] = ticket;
                     }
                 } else {
@@ -93,7 +93,7 @@ const QueueDisplay: React.FC = () => {
             // Sort waiting tickets for each service by creation time
             Object.values(grouped).forEach(service => {
                 service.waitingTickets.sort((a, b) =>
-                    new Date(a.ticket_issue_datetime).getTime() - new Date(b.ticket_issue_datetime).getTime()
+                    new Date(a.ticket_create_datetime).getTime() - new Date(b.ticket_create_datetime).getTime()
                 );
             });
 

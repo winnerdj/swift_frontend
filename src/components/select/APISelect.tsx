@@ -1,4 +1,4 @@
-import { useGetSelectDataQuery, routes } from '@/lib/redux/api/select.api';
+import { useGetSelectDataQuery } from '@/lib/redux/api/select.api';
 import { ActionMeta, SingleValue } from 'react-select';
 import Select from 'react-select/async';
 import { selectType } from './types';
@@ -6,7 +6,7 @@ import React from 'react';
 
 interface APISelectProps {
     id: string;
-    type: routes;
+    type: string;
     qc_type?: string;
     value: selectType | null;
     name?: string;

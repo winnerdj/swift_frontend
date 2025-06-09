@@ -9,6 +9,7 @@ import { Service } from "@/features/data-management/service-management";
 import { Kiosk } from "@/features/queue-management/kiosk";
 import { QueueDisplay } from "@/features/queue-management/queue-display";
 import { Ticket } from "@/features/transaction-logs/ticket-logs";
+import { CounterService } from "@/features/queue-management/counter-service";
 
 import { PvmDashboard } from "@/features/pvm-dashboard";
 
@@ -68,6 +69,15 @@ const route = createBrowserRouter([
                 handle: {
                     crumb: () => (
                         <Link path='/queue-display' label="Queue Display"/>
+                    )
+                }
+            },
+            {
+                path:'/counter-service',
+                element: <CounterService/>,
+                handle: {
+                    crumb: () => (
+                        <Link path='/counter-service' label="Counter Service"/>
                     )
                 }
             },

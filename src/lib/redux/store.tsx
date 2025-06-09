@@ -14,11 +14,18 @@ import { apiSlice, errorHandler } from './api'
 
 import tripSlice from './slices/trip.slice';
 import authSlice from './slices/auth.slice';
+import workSlice from './slices/work.slice';
 import pvmDashboardSlice from './slices/pvm-dashboard.slice'
 
 
-const persistConfig = {
-  key: 'root',
+const authPersistConfig  = {
+  key: 'auth',
+  version: 1,
+  storage,
+}
+
+const workPersistConfig = {
+  key: 'workSession',
   version: 1,
   storage,
 }
@@ -26,7 +33,8 @@ const persistConfig = {
 export const store = configureStore({
   reducer: combineReducers({
     [apiSlice.reducerPath]: apiSlice.reducer,
-    auth                  : persistReducer(persistConfig, authSlice),
+    auth                  : persistReducer(authPersistConfig , authSlice),
+    workSession           : persistReducer(workPersistConfig , workSlice),
     tripSlice             : tripSlice,
     pvmDashboardSlice     : pvmDashboardSlice
 

@@ -1,0 +1,1 @@
+export { default as CounterService } from './pages/CounterService';

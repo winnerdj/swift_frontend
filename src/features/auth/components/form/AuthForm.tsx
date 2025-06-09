@@ -17,6 +17,10 @@ import { useAppDispatch } from "@/hooks/redux.hooks";
 import { useLoginMutation } from "@/lib/redux/api/auth.api";
 import { setLogin } from "@/lib/redux/slices/auth.slice";
 
+import { useGetExistingWorkSessionDataQuery } from '@/lib/redux/api/work.api';
+import { getUserDetails } from "@/lib/redux/slices/auth.slice";
+import { useAppSelector } from '@/hooks/redux.hooks';
+
 const authSchema = yup.object({
     user_id: yup.string().required("Username is required"),
     user_password: yup.string().required("Password is required"),
@@ -27,6 +31,14 @@ type AuthSchemaType = yup.InferType<typeof authSchema>;
 const AuthForm: React.FC = () => {
     const [login, { isLoading }] = useLoginMutation();
     const dispatch = useAppDispatch();
+
+    // const userSessionDetails = useAppSelector(getUserDetails);
+
+    // const { data } = useGetExistingWorkSessionDataQuery(
+    //     {
+    //         user_id: userSessionDetails?.user_name ?? '',
+    //     }
+    // );
 
     const form = useForm<AuthSchemaType>({
         resolver: yupResolver(authSchema),

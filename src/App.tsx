@@ -32,7 +32,7 @@ function App() {
                 </Header>
 
                 {/* Main Content */}
-                <div className="flex flex-1 flex-col gap-4 p-4 bg-gray-200">
+                <div className="flex flex-1 flex-col gap-4 p-4 bg-gray-100">
                     <Outlet />
                 </div>
             </SidebarInset>

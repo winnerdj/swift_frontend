@@ -4,7 +4,6 @@ import React, { useCallback } from 'react';
 import { ticketTableType } from '../../types';
 import moment from 'moment';
 import { Button } from '@/components/ui/button'
-import { Pencil } from 'lucide-react';
 
 interface TicketTableProps {
     rowSelection: RowSelectionState;
@@ -30,7 +29,7 @@ const TicketTable: React.FC<TicketTableProps> = ({
 
     const columns: ColumnDef<ticketTableType>[] = [
         {
-            accessorKey: 'ticket_status ',
+            accessorKey: 'ticket_id',
             header: 'Ticket ID',
             cell: ({ row }) => (
                 <div className=''>

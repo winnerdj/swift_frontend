@@ -53,7 +53,7 @@ const defaultModules: moduleTypes[] = [
         module_group: 'Queue',
         module_key: 'Serve',
         module_name: 'Counter Service',
-        route: '/service',
+        route: '/counter-service',
         icon: 'HandPlatter'
     },
     {

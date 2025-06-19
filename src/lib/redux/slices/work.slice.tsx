@@ -6,7 +6,9 @@ type WorkState = {
     user_id: string | undefined;
     activity: string | undefined;
     service_id: string | undefined;
+    service_name: string | undefined;
     location: string | undefined;
+    location_desc: string | undefined;
     counter: number | undefined;
     user_status: string | undefined;
     reason_code: string | undefined;
@@ -17,7 +19,9 @@ const initialWorkState: WorkState = {
     user_id: undefined,
     activity: undefined,
     service_id: undefined,
+    service_name: undefined,
     location: undefined,
+    location_desc: undefined,
     counter: undefined,
     user_status: undefined,
     reason_code: undefined,

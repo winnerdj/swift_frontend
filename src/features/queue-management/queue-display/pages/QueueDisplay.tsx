@@ -48,9 +48,9 @@ const QueueDisplay: React.FC = () => {
         {
             serviceLocation: userSessionDetails?.user_location || 'undefined',
         },
-        {
-            pollingInterval: 60000 // Poll every 60 seconds for real-time updates
-        }
+        // {
+        //     pollingInterval: 60000 // Poll every 60 seconds for real-time updates
+        // }
     );
 
     // Effect to process fetched tickets and group them by service and counter

@@ -24,17 +24,17 @@ const authPersistConfig  = {
   storage,
 }
 
-const workPersistConfig = {
-  key: 'workSession',
-  version: 1,
-  storage,
-}
+// const workPersistConfig = {
+//   key: 'workSession',
+//   version: 1,
+//   storage,
+// }
 
 export const store = configureStore({
   reducer: combineReducers({
     [apiSlice.reducerPath]: apiSlice.reducer,
     auth                  : persistReducer(authPersistConfig , authSlice),
-    workSession           : persistReducer(workPersistConfig , workSlice),
+    workSession           : workSlice,
     tripSlice             : tripSlice,
     pvmDashboardSlice     : pvmDashboardSlice
 

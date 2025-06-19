@@ -13,7 +13,7 @@ import AvailableCounterSelect from '@/components/select/AvailableCounterSelect';
 import { useAppDispatch } from "@/hooks/redux.hooks";
 import { setWorkDetails } from "@/lib/redux/slices/work.slice";
 
-interface WorkLoginProps {
+interface WorkLoginDialogProps {
     onClose: () => void;
     isOpen: boolean;
 }
@@ -21,26 +21,26 @@ interface WorkLoginProps {
 const workLoginSchema = yup.object({
     service: yup.string().required('Service is required.'),
     counter: yup.string().required('Counter is required.'),
-});
+})
 
-type WorkLoginType = yup.InferType<typeof workLoginSchema>;
+type WorkLoginDialogType = yup.InferType<typeof workLoginSchema>;
 
 
-const WorkLogin: React.FC<WorkLoginProps> = (props) => {
+const WorkLoginDialog: React.FC<WorkLoginDialogProps> = (props) => {
     const dispatch = useAppDispatch();
-    const [workLogin, WorkLoginProps] = useWorkLoginMutation();
+    const [workLogin, WorkLoginDialogProps] = useWorkLoginMutation();
     const [service, setService] = React.useState<{label: string; value:string} | null> (null);
     const [counter, setCounter] = React.useState<{label: string; value:string} | null> (null);
 
-    const form = useForm<WorkLoginType>({
+    const form = useForm<WorkLoginDialogType>({
         resolver: yupResolver(workLoginSchema),
         defaultValues: {
             service: '',
             counter: ''
         }
-    });
+    })
 
-    const handleSubmit = async (data: WorkLoginType) => {
+    const handleSubmit = async (data: WorkLoginDialogType) => {
         console.log("Submitting data:", data);
 
         if(!service?.value) {
@@ -154,7 +154,7 @@ const WorkLogin: React.FC<WorkLoginProps> = (props) => {
                                 </div>
                             </CardContent>
                             <CardFooter className='flex justify-end'>
-                                <Button type='submit' isLoading={WorkLoginProps.isLoading}>Login</Button>
+                                <Button type='submit' isLoading={WorkLoginDialogProps.isLoading}>Login</Button>
                             </CardFooter>
                         </Card>
                     </form>
@@ -164,4 +164,4 @@ const WorkLogin: React.FC<WorkLoginProps> = (props) => {
     );
 }
 
-export default WorkLogin;
+export default WorkLoginDialog;

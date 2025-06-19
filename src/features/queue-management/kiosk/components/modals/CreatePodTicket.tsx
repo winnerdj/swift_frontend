@@ -10,6 +10,7 @@ import * as yup from 'yup';
 import { useCreateTicketMutation, useLazyGetTripDetailsQuery } from '@/lib/redux/api/ticket.api'; // ***CHANGED to useLazyGetTripDetailsQuery***
 import { toast } from 'react-toastify';
 import moment from 'moment';
+import qz from 'qz-tray';
 
 interface Service {
     service_id: string;
@@ -83,7 +84,7 @@ const CreatePodTicket: React.FC<{
             // ***Trigger the lazy query***
             const response = await fetchTripDetails({ tripPlanNo: formData.tripPlanNo }).unwrap();
 
-            if(response && response.data.length > 0) {
+            if (response && response.data.length > 0) {
                 // Populate the second form with fetched data
                 formTicket.setValue('ticket_trip_number', response.data[0].tripPlanNo || '');
                 formTicket.setValue('ticket_vehicle_type', response.data[0].truckType || '');
@@ -129,52 +130,84 @@ const CreatePodTicket: React.FC<{
                 response: null
             };
 
-            if(response.data) {
+            if (response.data) {
                 console.log("Ticket created successfully:", response.data);
                 createdTicket.response = response;
             }
 
-            if(response.success && response.data) {
+            if (response.success && response.data) {
                 toast.success(response.message);
                 const newTicketNumber = response.ticket_number || Math.floor(Math.random() * 1000) + 1; // Use actual ticket number if available
                 onCreateTicket(newTicketNumber);
                 formTicket.reset();
                 formTrip.reset();
-                handlePrintTicket({ createdTicket });
+                await handlePrintTicket({ createdTicket });
                 onClose();
             }
-            else if(response.error) {
+            else if (response.error) {
                 toast.error(response.error);
             }
             else {
                 toast.error("An unexpected error occurred during ticket creation.");
             }
-        } 
-        catch(error: any) {
+        }
+        catch (error: any) {
             console.error("Error creating ticket:", error);
             const errorMessage = error?.data?.error || error?.message || "Failed to create ticket.";
             toast.error(errorMessage);
         }
     };
 
-const handlePrintTicket = ({ createdTicket }: { createdTicket: any }) => {
-    if(!createdTicket) {
-        toast.error("No ticket data to print.");
-        return;
-    }
+    const handlePrintTicket = async ({ createdTicket }: { createdTicket: any }) => {
+        try {
+            if (!createdTicket) {
+                toast.error("No ticket data to print.");
+                return;
+            }
+            qz.security.setCertificatePromise(
+                (resolve: (cert: string | PromiseLike<string>) => void, reject: (reason?: any) => void) => {
+                    fetch("../../../../../assets/signing/digital-certificate.txt", {
+                        cache: 'no-store',
+                        headers: { 'Content-Type': 'text/plain' },
+                    })
+                        .then((response) => {
+                            response.ok ? response.text().then(resolve).catch(reject) : response.text().then(reject).catch(reject);
+                        })
+                        .catch(reject);
+                }
+            );
 
-    const printWindow = window.open('', '_blank');
-    if(printWindow) {
-        // Construct dynamic data for the print window
-        const serviceName = createdTicket.selectedService?.service_name || "undefined";
-        const serviceLocation = createdTicket.selectedService?.qc_service_location_desc || "undefined";
-        const ticketNumber = createdTicket.response?.data?.ticket_id || "undefined";
-        const ticketCreationDate = createdTicket.response?.data?.createdAt ?
-                        moment(createdTicket.response.data.createdAt).format('MM/DD/YYYY') : "undefined";
-        const ticketCreationTime = createdTicket.response?.data?.createdAt ?
-                        moment(createdTicket.response.data.createdAt).format('LT') : "undefined";
+            // Signature Promise (uses a private key to sign a challenge)
+            qz.security.setSignaturePromise((toSign: string) => {
+                return new Promise<string>((resolve, reject) => {
+                    fetch('../../../../../assets/signing/private-key.pem', {
+                        cache: 'no-store',
+                        headers: { 'Content-Type': 'application/javascript' },
+                    })
+                        .then((response) => response.text())
+                        .then((privateKeyScript) => {
+                            // Use Function constructor to simulate script execution (make sure it's trusted)
+                            const signFunction = new Function('toSign', `${privateKeyScript}; return sign(toSign);`);
+                            const signature = signFunction(toSign);
+                            resolve(signature);
+                        })
+                        .catch(reject);
+                });
+            });
 
-        printWindow.document.write(`
+            qz.security.setSignaturePromise(() => Promise.resolve());
+            await qz.websocket.connect();
+            const config = qz.configs.create('BIXOLON SRP-E302'); // printer name
+            // Construct dynamic data for the print window
+            const serviceName = createdTicket.selectedService?.service_name || "undefined";
+            const serviceLocation = createdTicket.selectedService?.qc_service_location_desc || "undefined";
+            const ticketNumber = createdTicket.response?.data?.ticket_id || "undefined";
+            const ticketCreationDate = createdTicket.response?.data?.createdAt ?
+                moment(createdTicket.response.data.createdAt).format('MM/DD/YYYY') : "undefined";
+            const ticketCreationTime = createdTicket.response?.data?.createdAt ?
+                moment(createdTicket.response.data.createdAt).format('LT') : "undefined";
+
+            const html = `
             <html>
             <head>
                 <title>Ticket</title>
@@ -344,15 +377,23 @@ const handlePrintTicket = ({ createdTicket }: { createdTicket: any }) => {
                 </script>
             </body>
             </html>
-        `);
-        printWindow.document.close();
-    } else {
-        toast.error("Could not open print window. Please allow pop-ups.");
-    }
-};
+        `
+            const data = [
+                {
+                    type: 'html',
+                    format: 'plain',
+                    data: html,
+                }
+            ];
+
+            qz.print(config, data).catch(console.error).finally(async () => { await qz.websocket.disconnect(); });
+        } catch (err) {
+            throw new Error(`Printing failed: ${err}`);
+        }
+    };
 
     useEffect(() => {
-        if(!isOpen) {
+        if (!isOpen) {
             // Reset both forms when dialog closes
             formTrip.reset();
             formTicket.reset();

@@ -164,38 +164,7 @@ const CreatePodTicket: React.FC<{
                 toast.error("No ticket data to print.");
                 return;
             }
-            qz.security.setCertificatePromise(
-                (resolve: (cert: string | PromiseLike<string>) => void, reject: (reason?: any) => void) => {
-                    fetch("../../../../../assets/signing/digital-certificate.txt", {
-                        cache: 'no-store',
-                        headers: { 'Content-Type': 'text/plain' },
-                    })
-                        .then((response) => {
-                            response.ok ? response.text().then(resolve).catch(reject) : response.text().then(reject).catch(reject);
-                        })
-                        .catch(reject);
-                }
-            );
 
-            // Signature Promise (uses a private key to sign a challenge)
-            qz.security.setSignaturePromise((toSign: string) => {
-                return new Promise<string>((resolve, reject) => {
-                    fetch('../../../../../assets/signing/private-key.pem', {
-                        cache: 'no-store',
-                        headers: { 'Content-Type': 'application/javascript' },
-                    })
-                        .then((response) => response.text())
-                        .then((privateKeyScript) => {
-                            // Use Function constructor to simulate script execution (make sure it's trusted)
-                            const signFunction = new Function('toSign', `${privateKeyScript}; return sign(toSign);`);
-                            const signature = signFunction(toSign);
-                            resolve(signature);
-                        })
-                        .catch(reject);
-                });
-            });
-
-            qz.security.setSignaturePromise(() => Promise.resolve());
             await qz.websocket.connect();
             const config = qz.configs.create('BIXOLON SRP-E302'); // printer name
             // Construct dynamic data for the print window

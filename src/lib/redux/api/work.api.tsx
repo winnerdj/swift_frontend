@@ -72,8 +72,7 @@ export const {
             query: () => ({
                 url: '/work/breaktime',
                 method: 'POST',
-            }),
-            invalidatesTags: ['WorkSession'],
+            })
         }),
         getActiveAssignedTicket: builder.query<any, { user_id: string; }>({
             query: (args) => ({
@@ -115,6 +114,6 @@ export const {
                 body: args
             }),
             invalidatesTags:['ActiveAssignedTicket']
-        }),
+        })
     })
 })

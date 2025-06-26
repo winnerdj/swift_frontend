@@ -11,7 +11,7 @@ import { toast } from 'react-toastify';
 import APISelect from '@/components/select/APISelect'; // Make sure this is the updated APISelect
 import AvailableCounterSelect from '@/components/select/AvailableCounterSelect';
 import { useAppDispatch } from "@/hooks/redux.hooks";
-import { setWorkDetails } from "@/lib/redux/slices/work.slice";
+import { setWorkSession } from "@/lib/redux/slices/work.slice";
 
 interface WorkLoginDialogProps {
     onClose: () => void;
@@ -69,7 +69,7 @@ const WorkLoginDialog: React.FC<WorkLoginDialogProps> = (props) => {
             if(response.data) {
                 let responseData = response.data
                 dispatch(
-                    setWorkDetails({
+                    setWorkSession({
                         user_id: responseData.user_id.user_id,
                         activity: responseData.activity,
                         service_id: responseData.service_id,

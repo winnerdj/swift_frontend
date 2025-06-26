@@ -32,7 +32,7 @@ const workSlice = createSlice({
     name: "workSession",
     initialState: initialWorkState, // Corrected: Use 'initialState' property
     reducers: {
-        setWorkDetails: (state, action: PayloadAction<Partial<WorkState>>) => {
+        setWorkSession: (state, action: PayloadAction<Partial<WorkState>>) => {
             // Corrected: More specific type for payload (Partial<WorkState>)
             Object.assign(state, action.payload); //## Mutate state directly (recommended by RTK)
         },
@@ -44,5 +44,5 @@ const workSlice = createSlice({
 export const getWorkSession = (state: RootState): WorkState => state.workSession; // Corrected: Access state.workLog
 
 //## Export actions & reducer
-export const { setWorkDetails, setQueueLogOut } = workSlice.actions;
+export const { setWorkSession, setQueueLogOut } = workSlice.actions;
 export default workSlice.reducer;

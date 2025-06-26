@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react'; // Import useRef
+import moment from 'moment';
 import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,10 +14,10 @@ import {
     usePostEndServingMutation,
     usePostNoShowMutation
 } from '@/lib/redux/api/work.api';
-import { getWorkSession, setQueueLogOut, setWorkDetails } from "@/lib/redux/slices/work.slice";
+import { getWorkSession, setQueueLogOut, setWorkSession } from "@/lib/redux/slices/work.slice";
 import { getUserDetails } from "@/lib/redux/slices/auth.slice";
 import { useAppSelector, useAppDispatch } from "@/hooks/redux.hooks";
-import moment from 'moment';
+import recallSound from '@/assets/recall.mp3'; // Adjust this path to your actual file
 
 import WorkLoginDialog from '../components/modals/WorkLoginDialog';
 
@@ -30,6 +31,7 @@ interface Ticket {
     ticket_status: number;
     ticket_create_datetime: string;
     ticket_counter?: number;
+    ticket_now_serving_datetime?: string;
 }
 
 const CounterService: React.FC = () => {
@@ -38,18 +40,9 @@ const CounterService: React.FC = () => {
     /** Login data in the swift system */
     const userSessionDetails = useAppSelector(getUserDetails);
 
-    console.log("🚀 --------------------------------------------------------------------🚀");
-    console.log("🚀 ~ CounterService.tsx:38 ~ userSessionDetails:", userSessionDetails);
-    console.log("🚀 --------------------------------------------------------------------🚀");
-
     /** Login data in the work session */
     const workSessionDetails = useAppSelector(getWorkSession);
 
-    console.log("🚀 --------------------------------------------------------------------🚀");
-    console.log("🚀 ~ CounterService.tsx:40 ~ workSessionDetails:", workSessionDetails);
-    console.log("🚀 --------------------------------------------------------------------🚀");
-
-    // const [groupedQueueData, setGroupedQueueData] = useState<GroupedQueueData[]>([]);
     const [isBreakTime, setIsBreakTime] = useState<boolean>(false);
     const [servingDuration, setServingDuration] = useState<string>('00:00:00');
 
@@ -57,9 +50,11 @@ const CounterService: React.FC = () => {
     const [overrideTicketNumber, setOverrideTicketNumber] = useState<string>('');
     const [overrideTicketStatus, setOverrideTicketStatus] = useState<string>('');
 
-    const [postStartServing, postStartServingProps] = usePostStartServingMutation();
-    const [postEndServing, postEndServingProps] = usePostEndServingMutation();
-    const [postNoShow, postNoShowProps] = usePostNoShowMutation();
+    const [postStartServing] = usePostStartServingMutation();
+    const [postEndServing] = usePostEndServingMutation();
+    const [postNoShow] = usePostNoShowMutation();
+    const [logoutWorkSession] = useLogoutWorkSessionMutation();
+    const [breaktimeWorkSession] = useBreaktimeWorkSessionMutation();
 
     // Fetch existing work session data
     const { data: existingWorkSessionData, isLoading: isLoadingWorkSession } = useGetExistingWorkSessionDataQuery(
@@ -67,25 +62,29 @@ const CounterService: React.FC = () => {
     );
 
     const { data: activeAssignedTicketData = { data : {} } } = useGetActiveAssignedTicketQuery(
-        { user_id: userSessionDetails?.user_name ?? '' }
+        { user_id: userSessionDetails?.user_name ?? '' },
+        {
+            pollingInterval: 10000, // Poll every 10 seconds
+            skip: isBreakTime, // Skip if on break
+            refetchOnFocus: true, // Refetch when the window is focused
+            refetchOnReconnect: true // Refetch when the browser reconnects
+        }
     );
-
-    const [logoutWorkSession] = useLogoutWorkSessionMutation();
-    const [breaktimeWorkSession] = useBreaktimeWorkSessionMutation();
 
     const { data: ticketsResponse = { data: [] }, isLoading, } = useGetTicketsTodayByServiceIdQuery(
         {
             service_id : workSessionDetails?.service_id || 'undefined',
         },
         {
-            pollingInterval: 60000,
-            skip: !workSessionDetails?.service_id
+            pollingInterval: 30000,
+            skip: !workSessionDetails?.service_id,
+            refetchOnFocus: true, // Refetch when the window is focused
+            refetchOnReconnect: true // Refetch when the browser reconnects
         }
     );
 
-    const agentService = workSessionDetails?.service_name || 'null';
-    const agentCounter = workSessionDetails?.counter || 'null';
-    const agentLocation = workSessionDetails?.location_desc || 'null';
+    // Create a ref for the audio element
+    const recallSoundRef = useRef<HTMLAudioElement>(null);
 
     /** Effect to process fetched existing worksession based on the user activity log */
     useEffect(() => {
@@ -93,8 +92,8 @@ const CounterService: React.FC = () => {
         if(existingWorkSessionData?.data) {
             /** If there is existing work session data from the API, set it in Redux */
             dispatch(
-                setWorkDetails({
-                    user_id: existingWorkSessionData.data.user_id.user_id,
+                setWorkSession({
+                    user_id: existingWorkSessionData.data.user_id,
                     activity: existingWorkSessionData.data.activity,
                     service_id: existingWorkSessionData.data.service_id,
                     service_name: existingWorkSessionData.data.service_name,
@@ -105,8 +104,35 @@ const CounterService: React.FC = () => {
                     reason_code: existingWorkSessionData.data.reason_code
                 })
             );
+
+            setIsBreakTime(existingWorkSessionData.data.activity === 'Queue Breaktime');
         }
-    }, [existingWorkSessionData, isLoadingWorkSession, workSessionDetails]);
+    }, [existingWorkSessionData, isLoadingWorkSession]);
+
+    /** Effect to calculate and update servingDuration */
+    useEffect(() => {
+        let interval: NodeJS.Timeout;
+
+        if (activeAssignedTicketData?.data?.ticket_status === 70 && activeAssignedTicketData.data.ticket_now_serving_datetime && !isBreakTime) {
+            const startServingTime = moment(activeAssignedTicketData.data.ticket_now_serving_datetime);
+
+            interval = setInterval(() => {
+                const now = moment();
+                const duration = moment.duration(now.diff(startServingTime));
+                const hours = String(Math.floor(duration.asHours())).padStart(2, '0');
+                const minutes = String(duration.minutes()).padStart(2, '0');
+                const seconds = String(duration.seconds()).padStart(2, '0');
+                setServingDuration(`${hours}:${minutes}:${seconds}`);
+            }, 1000); // Update every second
+        } else {
+            setServingDuration('00:00:00');
+        }
+
+        return () => {
+            clearInterval(interval); // Clean up the interval on component unmount or dependencies change
+        };
+    }, [activeAssignedTicketData, isBreakTime]); // Re-run effect when activeAssignedTicketData or isBreakTime changes
+
 
     const handleStartServing = async() => {
         console.log("Action: Start Serving Ticket:", activeAssignedTicketData.data.ticket_id);
@@ -117,9 +143,9 @@ const CounterService: React.FC = () => {
         }
 
         await postStartServing({
-            ticket_id                       : activeAssignedTicketData?.data?.ticket_id ?? '',
-            ticket_now_serving_datetime     : moment().format('YYYY-MM-DD HH:mm:ss'),
-            ticket_status                   : 70 // 70 is the status for "Now Serving"
+            ticket_id                   : activeAssignedTicketData?.data?.ticket_id ?? '',
+            ticket_now_serving_datetime : moment().format('YYYY-MM-DD HH:mm:ss'),
+            ticket_status               : 70 // 70 is the status for "Now Serving"
         })
         .unwrap()
         .then((response) => {
@@ -134,23 +160,24 @@ const CounterService: React.FC = () => {
     };
 
     const handleRecall = () => {
-        if (!activeAssignedTicketData?.data) return; // Use activeAssignedTicketData here
-        console.log("Action: Recall Ticket:", activeAssignedTicketData.data.ticket_number);
-        // Dispatch action or API call to recall the ticket
+        if(!activeAssignedTicketData?.data) return; // Use activeAssignedTicketData here
+        console.log("Action: Recall Ticket:", activeAssignedTicketData.data.ticket_id);
+
+        /** Play the recall sound */
+        if(recallSoundRef.current) {
+            recallSoundRef.current.play().catch(error => {
+                console.error("Error playing sound:", error);
+            });
+        }
     };
 
     const handleNoShow = async() => {
         console.log("Action: No Show Ticket:", activeAssignedTicketData.data.ticket_id);
 
-        if(!activeAssignedTicketData?.data?.ticket_id) {
-            alert('No ticket to tagged as No Show.');
-            return;
-        }
-
         await postNoShow({
-            ticket_id               : activeAssignedTicketData?.data?.ticket_id ?? '',
+            ticket_id           : activeAssignedTicketData?.data?.ticket_id ?? '',
             ticket_no_show_datetime : moment().format('YYYY-MM-DD HH:mm:ss'),
-            ticket_status           : 60 // 60 is the status for "No Show"
+            ticket_status       : 60 // 60 is the status for "No Show"
         })
         .unwrap()
         .then((response) => {
@@ -162,8 +189,8 @@ const CounterService: React.FC = () => {
             console.error("Error to post No Show ticket:", error);
             toast.error("Failed to post No Show ticket.");
         })
-        // if (window.confirm(`Mark ticket ${activeAssignedTicketData.data.ticket_number} as No Show?`)) {
-        //     console.log("Action: No Show for Ticket:", activeAssignedTicketData.data.ticket_number);
+        // if (window.confirm(`Mark ticket ${activeAssignedTicketData.data.ticket_id} as No Show?`)) {
+        //      console.log("Action: No Show for Ticket:", activeAssignedTicketData.data.ticket_id);
         // }
     };
 
@@ -176,9 +203,9 @@ const CounterService: React.FC = () => {
         }
 
         await postEndServing({
-            ticket_id               : activeAssignedTicketData?.data?.ticket_id ?? '',
+            ticket_id           : activeAssignedTicketData?.data?.ticket_id ?? '',
             ticket_served_datetime  : moment().format('YYYY-MM-DD HH:mm:ss'),
-            ticket_status           : 100 // 70 is the status for "Now Serving"
+            ticket_status       : 100 // 70 is the status for "Now Serving"
         })
         .unwrap()
         .then((response) => {
@@ -190,14 +217,12 @@ const CounterService: React.FC = () => {
             console.error("Error to post end serving ticket:", error);
             toast.error("Failed to post end serving ticket.");
         })
-
-
     };
 
     const handleCancel = () => {
-        if (!activeAssignedTicketData?.data) return; // Use activeAssignedTicketData here
-        if (window.confirm(`Cancel ticket ${activeAssignedTicketData.data.ticket_number}?`)) {
-            console.log("Action: Cancel Ticket:", activeAssignedTicketData.data.ticket_number);
+        if (!activeAssignedTicketData?.data) return;
+        if (window.confirm(`Cancel ticket ${activeAssignedTicketData.data.ticket_id}?`)) {
+            console.log("Action: Cancel Ticket:", activeAssignedTicketData.data.ticket_id);
         }
     };
 
@@ -209,6 +234,7 @@ const CounterService: React.FC = () => {
 
             if(breaktimeResponse.success) {
                 console.log('Work breaktime successfully.');
+                setIsBreakTime(false)
             }
             else {
                 console.log('Work breaktime unsuccessful.');
@@ -237,7 +263,7 @@ const CounterService: React.FC = () => {
     };
 
     const handleTransferTicket = () => {
-        if (!activeAssignedTicketData?.data) { // Use activeAssignedTicketData here
+        if (!activeAssignedTicketData?.data) {
             alert("No ticket is currently being served to transfer.");
             return;
         }
@@ -245,17 +271,17 @@ const CounterService: React.FC = () => {
             alert("Please select a service_id to transfer the ticket to.");
             return;
         }
-        console.log(`Transferring ticket ${activeAssignedTicketData.data.ticket_number} to service_id: ${transferToService}`);
+        console.log(`Transferring ticket ${activeAssignedTicketData.data.ticket_id} to service_id: ${transferToService}`);
 
         setTransferToService('');
     };
 
     const handlePrintTicket = () => {
-        if (!activeAssignedTicketData?.data) { // Use activeAssignedTicketData here
+        if (!activeAssignedTicketData?.data) {
             alert("No ticket to print.");
             return;
         }
-        console.log(`Printing ticket for ${activeAssignedTicketData.data.ticket_number}`);
+        console.log(`Printing ticket for ${activeAssignedTicketData.data.ticket_id}`);
         // Implement print logic
     };
 
@@ -277,9 +303,8 @@ const CounterService: React.FC = () => {
     const currentHeaderTime = moment().format('hh:mm A');
     const currentHeaderDate = moment().format('YYYY-MM-DD');
 
-    // Use activeAssignedTicketData for current ticket checks
+    /** Use activeAssignedTicketData for current ticket checks */
     const isNowServingActive = activeAssignedTicketData?.data && activeAssignedTicketData.data.ticket_status === 11;
-    const isRecallActive = activeAssignedTicketData?.data && activeAssignedTicketData.data.ticket_status === 10;
     const isCancelActive = !!activeAssignedTicketData?.data;
 
     const handleWorkLoginDialogClose = () => {
@@ -289,20 +314,23 @@ const CounterService: React.FC = () => {
         dispatch(setQueueLogOut());
     };
 
-    // Render the WorkLoginDialog if there's no work session data in Redux.
-    // This makes the dialog the primary gatekeeper for the counter service.
-    if(!workSessionDetails?.service_id) { // Check if Redux workSessionDetails is empty/null
+    /** Render the WorkLoginDialog if there's no work session data in Redux.
+        This makes the dialog the primary gatekeeper for the counter service. */
+    if(!workSessionDetails?.service_id && workSessionDetails?.activity != 'Queue Breaktime') { // Check if Redux workSessionDetails is empty/null
         return <WorkLoginDialog isOpen={true} onClose={handleWorkLoginDialogClose} />;
     }
 
     return (
         <div className="grid gap-3 pl-2 pr-2">
+            {/* Hidden audio element for the recall sound */}
+            <audio ref={recallSoundRef} src={recallSound} preload="auto" />
+
             {/* HEADER */}
             <div className='flex w-full items-center justify-end rounded-md p-3 h-19 gap-x-4 bg-gray-50 shadow-2xs'>
                 <div className="grid flex-1 items-center">
-                    <span>Location: {agentLocation}</span>
-                    <span>Service: {agentService}</span>
-                    <span>Counter: {agentCounter}</span>
+                    <span>Location: {workSessionDetails?.location_desc || 'null'}</span>
+                    <span>Service: {workSessionDetails?.service_name || 'null'}</span>
+                    <span>Counter: {workSessionDetails?.counter || 'null'}</span>
                 </div>
                 <div className="grid flex-1 items-center">
                     <span>Date: {currentHeaderDate}</span>
@@ -338,7 +366,7 @@ const CounterService: React.FC = () => {
                                     onClick={handleRecall}
                                     disabled={
                                         !activeAssignedTicketData?.data?.ticket_id ||
-                                        [50, 60].includes(activeAssignedTicketData?.data?.ticket_status)
+                                        ![50, 60].includes(activeAssignedTicketData?.data?.ticket_status)
                                     }
                                 >
                                     Recall
@@ -390,14 +418,16 @@ const CounterService: React.FC = () => {
 
                         <div className="grid grid-cols-2 gap-4 mt-auto border-gray-300">
                             <Button className={`p-4 h-auto text-xl font-bold border border-gray-400 ${
-                                            isBreakTime ? 'bg-orange-500 text-white' : 'bg-gray-200 text-black hover:bg-gray-300'
-                                        }`}
+                                        isBreakTime ? 'bg-orange-500 text-white' : 'bg-gray-200 text-black hover:bg-gray-300'
+                                    }`}
                                 onClick={handleToggleBreakTime}
+                                disabled={activeAssignedTicketData?.data?.ticket_id}
                             >
                                 {isBreakTime ? "End Break" : "Break Time"}
                             </Button>
                             <Button className="bg-gray-200 text-black hover:bg-gray-300 p-4 h-auto text-xl font-bold border border-gray-400 flex items-center"
                                 onClick={handleQueueLogout}
+                                disabled={activeAssignedTicketData?.data?.ticket_id}
                                 >Queue Log Out
                             </Button>
                         </div>

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import useDisclosure from '@/hooks/useDisclosure';
 import { Button } from '@/components/ui/button'
 import CreatePodTicket from '../components/modals/CreatePodTicket';
+import CreateDefautTicket from '../components/modals/CreateDefaultTicket';
 import { Maximize } from 'lucide-react' // Import Maximize for fullscreen icon
 import { useGetServiceQuery } from '@/lib/redux/api/service.api';
 import { getUserDetails } from "@/lib/redux/slices/auth.slice";
@@ -12,6 +13,7 @@ interface Service {
     service_name: string;
     service_location: string;
     service_status: number;
+    service_modal_ui: string;
 }
 
 const Kiosk: React.FC = () => {
@@ -38,7 +40,15 @@ const Kiosk: React.FC = () => {
 
     const handleServiceSelection = (service: Service) => {
         setSelectedService(service);
-        kioskDisclosure.onOpen('createPodTicket');
+
+        if(service.service_modal_ui) {
+            console.error("Invalid service selected:", service);
+            kioskDisclosure.onOpen(service.service_modal_ui);
+            return;
+        }
+        else {
+            kioskDisclosure.onOpen('createDefaultTicket');
+        }
     };
 
     const handleCreateTicket = (ticketNum: number) => { // Receive ticket number from modal
@@ -144,6 +154,16 @@ const Kiosk: React.FC = () => {
                 }}
                 selectedService={selectedService}
                 onCreateTicket={handleCreateTicket} // Pass callback
+            />
+
+            <CreateDefautTicket
+                isOpen={kioskDisclosure.isOpen('createDefaultTicket')}
+                onClose={() => {
+                    kioskDisclosure.onClose('createDefaultTicket');
+                    setSelectedService(null);
+                }}
+                selectedService={selectedService}
+                onCreateTicket={handleCreateTicket}
             />
         </div>
     );

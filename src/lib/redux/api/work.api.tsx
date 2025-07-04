@@ -27,6 +27,23 @@ type noShow = {
     ticket_no_show_datetime: string;
 }
 
+type overrideTicket = {
+    ticket_id : string;
+    ticket_service : string;
+    ticket_status : string;
+    ticket_counter : number | null;
+}
+
+type cancelTicket = {
+    ticket_id: string;
+    ticket_reason_code: string;
+}
+
+type transferTicket = {
+    ticket_id: string;
+    ticket_service: string;
+}
+
 export const { 
     useWorkLoginMutation,
     useGetExistingWorkSessionDataQuery,
@@ -38,7 +55,10 @@ export const {
     useLazyGetTicketsTodayByServiceIdQuery,
     usePostStartServingMutation,
     usePostEndServingMutation,
-    usePostNoShowMutation
+    usePostNoShowMutation,
+    useOverrideTicketMutation,
+    useCancelTicketMutation,
+    useTransferTicketMutation
 } = apiSlice.injectEndpoints({
     endpoints: builder => ({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -72,7 +92,8 @@ export const {
             query: () => ({
                 url: '/work/breaktime',
                 method: 'POST',
-            })
+            }),
+            invalidatesTags: ['WorkSession']
         }),
         getActiveAssignedTicket: builder.query<any, { user_id: string; }>({
             query: (args) => ({
@@ -89,7 +110,7 @@ export const {
                 method: 'GET',
                 params: args,
             }),
-            providesTags: ['ActiveAssignedTicket']
+            providesTags: ['TodayTicketsByService']
         }),
         postStartServing: builder.mutation<any, startServing>({
             query: (args) => ({
@@ -97,7 +118,7 @@ export const {
                 method: 'POST',
                 body: args
             }),
-            invalidatesTags:['ActiveAssignedTicket']
+            invalidatesTags:['ActiveAssignedTicket', 'TodayTicketsByService']
         }),
         postEndServing: builder.mutation<any, endServing>({
             query: (args) => ({
@@ -105,7 +126,7 @@ export const {
                 method: 'POST',
                 body: args
             }),
-            invalidatesTags:['ActiveAssignedTicket']
+            invalidatesTags:['ActiveAssignedTicket', 'TodayTicketsByService']
         }),
         postNoShow: builder.mutation<any, noShow>({
             query: (args) => ({
@@ -113,7 +134,31 @@ export const {
                 method: 'POST',
                 body: args
             }),
-            invalidatesTags:['ActiveAssignedTicket']
+            invalidatesTags:['ActiveAssignedTicket', 'TodayTicketsByService']
+        }),
+        overrideTicket: builder.mutation<any, overrideTicket>({
+            query: (args) => ({
+                url: '/work/override-ticket',
+                method: 'POST',
+                body: args,
+            }),
+            invalidatesTags:['TodayTicketsByService']
+        }),
+        cancelTicket: builder.mutation<any, cancelTicket>({
+            query: (args) => ({
+                url: '/work/cancel-ticket',
+                method: 'POST',
+                body: args,
+            }),
+            invalidatesTags:['ActiveAssignedTicket', 'TodayTicketsByService']
+        }),
+        transferTicket: builder.mutation<any, transferTicket>({
+            query: (args) => ({
+                url: '/work/transfer-ticket',
+                method: 'POST',
+                body: args,
+            }),
+            invalidatesTags:['ActiveAssignedTicket', 'TodayTicketsByService']
         })
     })
 })

@@ -3,6 +3,7 @@ import moment from 'moment';
 import { toast } from 'react-toastify';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import useDisclosure from '@/hooks/useDisclosure';
 
 import {
     useGetExistingWorkSessionDataQuery,
@@ -12,14 +13,19 @@ import {
     useGetTicketsTodayByServiceIdQuery,
     usePostStartServingMutation,
     usePostEndServingMutation,
-    usePostNoShowMutation
+    usePostNoShowMutation,
+    useOverrideTicketMutation,
+    useTransferTicketMutation
 } from '@/lib/redux/api/work.api';
 import { getWorkSession, setQueueLogOut, setWorkSession } from "@/lib/redux/slices/work.slice";
 import { getUserDetails } from "@/lib/redux/slices/auth.slice";
 import { useAppSelector, useAppDispatch } from "@/hooks/redux.hooks";
-import recallSound from '@/assets/recall.mp3'; // Adjust this path to your actual file
+
+import recallSound from '@/assets/recall.mp3';
 
 import WorkLoginDialog from '../components/modals/WorkLoginDialog';
+import CancelTicket from '../components/modals/CancelTicket';
+import APISelect from '@/components/select/APISelect';
 
 interface Ticket {
     ticket_id: string;
@@ -32,9 +38,12 @@ interface Ticket {
     ticket_create_datetime: string;
     ticket_counter?: number;
     ticket_now_serving_datetime?: string;
+    qc_service_location_desc: string;
+    createdAt?: string;
 }
 
 const CounterService: React.FC = () => {
+    const counterServiceDisclosure = useDisclosure();
     const dispatch = useAppDispatch();
 
     /** Login data in the swift system */
@@ -45,41 +54,38 @@ const CounterService: React.FC = () => {
 
     const [isBreakTime, setIsBreakTime] = useState<boolean>(false);
     const [servingDuration, setServingDuration] = useState<string>('00:00:00');
-
-    const [transferToService, setTransferToService] = useState<string>('');
     const [overrideTicketNumber, setOverrideTicketNumber] = useState<string>('');
-    const [overrideTicketStatus, setOverrideTicketStatus] = useState<string>('');
+    const [overrideTicketStatus, setOverrideTicketStatus] = useState<{label: string; value:string} | null> (null)
+    const [transferToService, setTransferToService] = useState<{label: string; value:string} | null> (null)
+    const [transferredNewTicketNumber, setTransferredNewTicketNumber] = useState<Ticket | null>(null);
 
     const [postStartServing] = usePostStartServingMutation();
     const [postEndServing] = usePostEndServingMutation();
     const [postNoShow] = usePostNoShowMutation();
     const [logoutWorkSession] = useLogoutWorkSessionMutation();
     const [breaktimeWorkSession] = useBreaktimeWorkSessionMutation();
+    const [overrideTicket] = useOverrideTicketMutation();
+    const [transferTicket] = useTransferTicketMutation();
 
-    // Fetch existing work session data
+    /** Fetch existing work session data */
     const { data: existingWorkSessionData, isLoading: isLoadingWorkSession } = useGetExistingWorkSessionDataQuery(
         { user_id: userSessionDetails?.user_name ?? '' }
     );
 
-    const { data: activeAssignedTicketData = { data : {} } } = useGetActiveAssignedTicketQuery(
-        { user_id: userSessionDetails?.user_name ?? '' },
+    /** Fetch activeAssignedTicketData to the user */
+    const { data: activeAssignedTicketData = { data : {} }, isLoading: isLoadingActiveAssignedTicketData  } = useGetActiveAssignedTicketQuery(
+        { user_id: workSessionDetails?.user_id ?? '' },
         {
             pollingInterval: 10000, // Poll every 10 seconds
-            skip: isBreakTime, // Skip if on break
-            refetchOnFocus: true, // Refetch when the window is focused
-            refetchOnReconnect: true // Refetch when the browser reconnects
+            skip: !workSessionDetails?.user_id, // Skip if user_name is not set
         }
     );
 
     const { data: ticketsResponse = { data: [] }, isLoading, } = useGetTicketsTodayByServiceIdQuery(
+        { service_id : workSessionDetails?.service_id || 'undefined' },
         {
-            service_id : workSessionDetails?.service_id || 'undefined',
-        },
-        {
-            pollingInterval: 30000,
-            skip: !workSessionDetails?.service_id,
-            refetchOnFocus: true, // Refetch when the window is focused
-            refetchOnReconnect: true // Refetch when the browser reconnects
+            pollingInterval: 30000,  // Poll every 30 seconds
+            skip: !workSessionDetails?.service_id, // Skip if service_id is not set
         }
     );
 
@@ -105,9 +111,9 @@ const CounterService: React.FC = () => {
                 })
             );
 
-            setIsBreakTime(existingWorkSessionData.data.activity === 'Queue Breaktime');
+            setIsBreakTime(existingWorkSessionData.data.user_status === 'Available' ? false : true);
         }
-    }, [existingWorkSessionData, isLoadingWorkSession]);
+    }, [existingWorkSessionData, isLoadingWorkSession, isBreakTime]);
 
     /** Effect to calculate and update servingDuration */
     useEffect(() => {
@@ -131,8 +137,7 @@ const CounterService: React.FC = () => {
         return () => {
             clearInterval(interval); // Clean up the interval on component unmount or dependencies change
         };
-    }, [activeAssignedTicketData, isBreakTime]); // Re-run effect when activeAssignedTicketData or isBreakTime changes
-
+    }, [activeAssignedTicketData, isLoadingActiveAssignedTicketData, isBreakTime]); // Re-run effect when activeAssignedTicketData or isBreakTime changes
 
     const handleStartServing = async() => {
         console.log("Action: Start Serving Ticket:", activeAssignedTicketData.data.ticket_id);
@@ -175,9 +180,9 @@ const CounterService: React.FC = () => {
         console.log("Action: No Show Ticket:", activeAssignedTicketData.data.ticket_id);
 
         await postNoShow({
-            ticket_id           : activeAssignedTicketData?.data?.ticket_id ?? '',
+            ticket_id               : activeAssignedTicketData?.data?.ticket_id ?? '',
             ticket_no_show_datetime : moment().format('YYYY-MM-DD HH:mm:ss'),
-            ticket_status       : 60 // 60 is the status for "No Show"
+            ticket_status           : 60 // 60 is the status for "No Show"
         })
         .unwrap()
         .then((response) => {
@@ -203,9 +208,9 @@ const CounterService: React.FC = () => {
         }
 
         await postEndServing({
-            ticket_id           : activeAssignedTicketData?.data?.ticket_id ?? '',
+            ticket_id               : activeAssignedTicketData?.data?.ticket_id ?? '',
             ticket_served_datetime  : moment().format('YYYY-MM-DD HH:mm:ss'),
-            ticket_status       : 100 // 70 is the status for "Now Serving"
+            ticket_status           : 100 // 100 is the status for "Served"
         })
         .unwrap()
         .then((response) => {
@@ -219,11 +224,9 @@ const CounterService: React.FC = () => {
         })
     };
 
-    const handleCancel = () => {
-        if (!activeAssignedTicketData?.data) return;
-        if (window.confirm(`Cancel ticket ${activeAssignedTicketData.data.ticket_id}?`)) {
-            console.log("Action: Cancel Ticket:", activeAssignedTicketData.data.ticket_id);
-        }
+    const handleCancel = async() => {
+        console.log("Action: Cancel Ticket:", activeAssignedTicketData.data.ticket_id);
+        counterServiceDisclosure.onOpen('cancelTicket');
     };
 
     const handleToggleBreakTime = async() => {
@@ -232,9 +235,13 @@ const CounterService: React.FC = () => {
         try {
             let breaktimeResponse = await breaktimeWorkSession().unwrap();
 
-            if(breaktimeResponse.success) {
+            if(breaktimeResponse.success && breaktimeResponse?.data?.user_status === 'Breaktime') {
                 console.log('Work breaktime successfully.');
-                setIsBreakTime(false)
+                setIsBreakTime(true)
+            }
+            else if(breaktimeResponse.success && breaktimeResponse?.data?.user_status === 'Available') {
+                console.log('Work breaktime ended successfully.');
+                setIsBreakTime(false);
             }
             else {
                 console.log('Work breaktime unsuccessful.');
@@ -262,38 +269,261 @@ const CounterService: React.FC = () => {
         }
     };
 
-    const handleTransferTicket = () => {
-        if (!activeAssignedTicketData?.data) {
-            alert("No ticket is currently being served to transfer.");
-            return;
-        }
-        if (!transferToService) {
-            alert("Please select a service_id to transfer the ticket to.");
-            return;
-        }
-        console.log(`Transferring ticket ${activeAssignedTicketData.data.ticket_id} to service_id: ${transferToService}`);
+    const handleTransferTicket = async() => {
+        console.log("🚀 ~ CounterService.tsx: ~ clicked handleTransferTicket.");
 
-        setTransferToService('');
+        try {
+            if(!activeAssignedTicketData?.data && activeAssignedTicketData?.data?.ticket_status !== 70) {
+                alert("No ticket is currently being served to transfer.");
+                return;
+            }
+
+            let transferResponse = await transferTicket({
+                ticket_id       : activeAssignedTicketData.data.ticket_id,
+                ticket_service  : transferToService?.value || ''
+            }).unwrap();
+
+            if(transferResponse.success && transferResponse.data) {
+                console.log('Ticket transfer successfully.');
+
+                let newTicketData = {
+                    ...transferResponse.data,
+                    qc_service_location_desc: transferToService?.value || 'xxx',
+                }
+
+                setTransferredNewTicketNumber(newTicketData);
+                setTransferToService(null)
+                toast.success(`Ticket transferred to ${transferToService?.label}. Kindly print the new ticket.`);
+            }
+            else {
+                console.log('Ticket transfer unsuccessful.');
+            }
+        } catch (err) {
+            console.error('Failed to transfer ticket:', err);
+        }
     };
 
-    const handlePrintTicket = () => {
-        if (!activeAssignedTicketData?.data) {
-            alert("No ticket to print.");
+    // const handlePrintTicket = async() => {
+    //     console.log("🚀 ~ CounterService.tsx: ~ clicked handlePrintTicket.");
+
+    //     console.log(transferredNewTicketNumber)
+    // };
+
+    const handlePrintTicket = async() => {
+        if(!transferredNewTicketNumber) {
+            toast.error("No ticket data to print.");
             return;
         }
-        console.log(`Printing ticket for ${activeAssignedTicketData.data.ticket_id}`);
-        // Implement print logic
+
+        const printWindow = window.open('', '_blank');
+        if(printWindow) {
+            // Construct dynamic data for the print window
+            const serviceName = transferredNewTicketNumber?.service_name || "undefined";
+            const serviceLocation = transferredNewTicketNumber?.qc_service_location_desc || "undefined";
+            const ticketNumber = transferredNewTicketNumber?.ticket_id || "undefined";
+            const ticketCreationDate = transferredNewTicketNumber?.createdAt ?
+                            moment(transferredNewTicketNumber?.createdAt).format('MM/DD/YYYY') : "undefined";
+            const ticketCreationTime = transferredNewTicketNumber?.createdAt ?
+                            moment(transferredNewTicketNumber?.createdAt).format('LT') : "undefined";
+
+            printWindow.document.write(`
+                <html>
+                <head>
+                    <title>Ticket</title>
+                    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+                    <style>
+                        body {
+                            font-family: 'Inter', sans-serif;
+                            margin: 0;
+                            color: #000;
+                            font-size: 0.8em;
+                        }
+                        .ticket-container {
+                            padding: 5px;
+                            width: 100%;
+                            box-sizing: border-box;
+                        }
+                        p {
+                            margin: 0;
+                            padding: 1px;
+                        }
+                        h1 {
+                            font-size: 1.2em;
+                            text-align: center;
+                            margin: 5px 0;
+                        }
+                        .ticket-message {
+                            font-size: 1em;
+                            padding:0 5px;
+                            font-weight: 600;
+                        }
+                        .ticket-number {
+                            font-size: 1.8em;
+                            font-weight: bold;
+                            text-align: center;
+                            margin: 8px 0;
+                            padding: 5px;
+                            border-top: 2px solid #000;
+                            border-bottom: 2px solid #000;
+                        }
+                        #barcode {
+                            max-width: 100%;
+                            height: auto;
+                            display: block;
+                            margin: 0 auto;
+                        }
+                        .barcode-container {
+                            text-align: center;
+                            border-top: 2px solid #000;
+                            margin-top: 8px;
+                            padding-top: 5px;
+                            padding-left: 0px;
+                            padding-right: 0px;
+                        }
+                        .barcode-label {
+                            text-align: center;
+                            font-size: 0.8em;
+                        }
+                        .main-content {
+                            display: flex;
+                            flex-wrap: wrap;
+                            justify-content: space-between;
+                            align-items: flex-start;
+                            margin-top: 5px;
+                        }
+                        .primary-info, .ticket-details {
+                            flex: 1;
+                            min-width: 49%;
+                            box-sizing: border-box;
+                        }
+                        .primary-info {
+                            padding-right: 5px;
+                        }
+                        .ticket-details {
+                            padding-left: 5px;
+                        }
+                        .ticket-details p {
+                            display: flex;
+                            align-items: baseline;
+                            margin-left: auto;
+                        }
+                        .ticket-details .label {
+                            display: inline-block;
+                            width: 50px;
+                            text-align: left;
+                            margin-right: 5px;
+                            flex-shrink: 0;
+                        }
+                        @media print {
+                            body { margin: 0; }
+                            .ticket-container {
+                                border: none;
+                                box-shadow: none;
+                                max-width: none;
+                                width: 100%;
+                            }
+                            script { display: none; }
+                        }
+                    </style>
+                </head>
+                <body>
+                    <div class="ticket-container">
+                        <div class="ticket-header">
+                            <h1>${serviceName} Ticket Number</h1>
+                        </div>
+                        <div class="ticket-number">${ticketNumber}</div>
+                        <div class="ticket-message">
+                            <p>Paki-hintay po hanggang tawagin ang inyong ticket number. Salamat!</p>
+                        </div>
+
+                        <div class="main-content">
+                            <div class="primary-info"></div>
+                            <div class="ticket-details">
+                                <p><span class="label">Location:</span>${serviceLocation}</p>
+                                <p><span class="label">Date:</span>${ticketCreationDate}</p>
+                                <p><span class="label">Time:</span>${ticketCreationTime}</p>
+                            </div>
+                        </div>
+
+                        <div class="barcode-container">
+                            <img id="barcode">
+                        </div>
+                    </div>
+                    <script>
+                        window.onload = function() {
+                            const ticketNumber = "${ticketNumber}"; // Get the dynamic ticket number
+                            console.log('Print window onload. Ticket Number:', ticketNumber);
+
+                            if(ticketNumber && ticketNumber !== "undefined") {
+                                JsBarcode("#barcode", ticketNumber, {
+                                    format: "CODE128",
+                                    displayValue: true,
+                                    height: 35,
+                                    width: 1.5,
+                                    margin: 0,
+                                    background: "#ffffff",
+                                    lineColor: "#000000",
+                                    valid: function () {
+                                        console.log('Barcode rendered, attempting to print...');
+                                        setTimeout(() => {
+                                            window.print();
+                                            window.onafterprint = function() {
+                                                console.log('After print, closing window.');
+                                                window.close();
+                                            };
+                                        }, 150);
+                                    },
+                                    error: function(err) {
+                                        console.error("JsBarcode error:", err);
+                                        setTimeout(() => {
+                                            window.print();
+                                            window.onafterprint = function() {
+                                                window.close();
+                                            };
+                                        }, 150);
+                                    }
+                                });
+                            } else {
+                                console.error('Invalid ticket number for barcode generation. Printing without barcode.');
+                                setTimeout(() => {
+                                    window.print();
+                                    window.onafterprint = function() {
+                                        window.close();
+                                    };
+                                }, 150);
+                            }
+                        };
+                    </script>
+                </body>
+                </html>
+            `);
+            printWindow.document.close();
+        } else {
+            toast.error("Could not open print window. Please allow pop-ups.");
+        }
     };
 
-    const handleOverrideTicketStatus = () => {
-        if (!overrideTicketNumber || !overrideTicketStatus) {
+    const handleOverrideTicketStatus = async() => {
+        if(!overrideTicketNumber && !overrideTicketStatus) {
             alert("Please enter a ticket number and select a status to override.");
             return;
         }
         console.log(`Overriding ticket ${overrideTicketNumber} to status: ${overrideTicketStatus}`);
-        // Dispatch action or API call to override ticket status
-        setOverrideTicketNumber('');
-        setOverrideTicketStatus('');
+
+        let overrideResponse = await overrideTicket({
+            ticket_id       : overrideTicketNumber,
+            ticket_service  : workSessionDetails?.service_id || '',
+            ticket_status   : overrideTicketStatus?.value || '',
+            ticket_counter  : workSessionDetails?.counter || null,
+        }).unwrap();
+
+        if(overrideResponse.success && overrideResponse.data) {
+            toast.success(`Ticket ${overrideTicketNumber} status overridden to ${overrideTicketStatus?.label} and assigned to ${userSessionDetails?.user_name}.`);
+            setOverrideTicketNumber('');
+            setOverrideTicketStatus(null);
+        } else {
+            toast.error(`Failed to override ticket ${overrideTicketNumber} status.`);
+        }
     };
 
     const allTickets = ticketsResponse.data || [];
@@ -304,8 +534,7 @@ const CounterService: React.FC = () => {
     const currentHeaderDate = moment().format('YYYY-MM-DD');
 
     /** Use activeAssignedTicketData for current ticket checks */
-    const isNowServingActive = activeAssignedTicketData?.data && activeAssignedTicketData.data.ticket_status === 11;
-    const isCancelActive = !!activeAssignedTicketData?.data;
+    const isNowServingActive = activeAssignedTicketData?.data && activeAssignedTicketData.data.ticket_status === 70;
 
     const handleWorkLoginDialogClose = () => {
         console.log("WorkLoginDialog closed.");
@@ -348,12 +577,12 @@ const CounterService: React.FC = () => {
                             ) : activeAssignedTicketData?.data ? (
                                 <>
                                     <h1 className="text-6xl font-bold text-center mt-4 mb-2">{activeAssignedTicketData.data.ticket_id}</h1>
-                                    <div className="text-xl text-center opacity-90">
+                                    <div className="text-2xl text-center opacity-90">
                                         Time Elapsed: {servingDuration}
                                     </div>
                                 </>
                             ) : (
-                                <p className="text-3xl font-bold text-center">
+                                <p className="text-5xl font-bold text-center">
                                     {isBreakTime ? "ON BREAK" : "READY"}
                                 </p>
                             )}
@@ -409,7 +638,6 @@ const CounterService: React.FC = () => {
                                 <Button
                                     className="bg-gray-200 text-black hover:bg-gray-300 p-4 h-auto text-xl font-bold border border-gray-400 flex items-center justify-between"
                                     onClick={handleCancel}
-                                    disabled={!isCancelActive}
                                 >
                                     Cancel <span className="text-2xl ml-2">►</span>
                                 </Button>
@@ -453,18 +681,24 @@ const CounterService: React.FC = () => {
                             <div className="bg-gray-100 p-4 flex flex-col space-y-4">
                                 <div className="flex items-center space-x-2">
                                     <span className="text-gray-700 font-semibold text-lg">To Service:</span>
-                                    <Input
-                                        className="flex-grow bg-white border border-gray-300 text-black"
-                                        value={transferToService}
-                                        onChange={(e) => setTransferToService(e.target.value)}
-                                        placeholder="Enter Service ID"
-                                    />
+                                    <div className="flex-grow text-black">
+                                        <APISelect
+                                            id='transfer-ticket-service'
+                                            type={'transfer-service'}
+                                            onChange={(selected) => {
+                                                setTransferToService(selected)
+                                            }}
+                                            value={transferToService}
+                                            placeholder='Select ticket status'
+                                            className='text-md text-black'
+                                        />
+                                    </div>
                                 </div>
                                 <Button
                                     className="bg-orange-500 hover:bg-orange-600 text-white p-3 h-auto text-lg font-bold"
                                     onClick={handleTransferTicket}
-                                    disabled={!activeAssignedTicketData?.data || !transferToService}
-                                >
+                                    disabled={activeAssignedTicketData?.data?.ticket_status != 70 || !transferToService}
+                                >   
                                     Transfer
                                 </Button>
                             </div>
@@ -483,12 +717,19 @@ const CounterService: React.FC = () => {
                                 </div>
                                 <div className="flex items-center space-x-2">
                                     <span className="text-gray-700 font-semibold text-lg">Ticket Status:</span>
-                                    <Input
-                                        className="flex-grow bg-white border border-gray-300 text-black"
-                                        value={overrideTicketStatus}
-                                        onChange={(e) => setOverrideTicketStatus(e.target.value)}
-                                        placeholder="Enter Status Code"
-                                    />
+                                    <div className="flex-grow text-black">
+                                        <APISelect
+                                            id='override-ticket-status'
+                                            type={'quickcode'}
+                                            qc_type={'override_ticket_status'}
+                                            onChange={(selected) => {
+                                                setOverrideTicketStatus(selected)
+                                            }}
+                                            value={overrideTicketStatus}
+                                            placeholder='Select ticket status'
+                                            className='text-md text-black'
+                                        />
+                                    </div>
                                 </div>
                                 <Button
                                     className="bg-orange-500 hover:bg-orange-600 text-white p-3 h-auto text-lg font-bold"
@@ -502,13 +743,14 @@ const CounterService: React.FC = () => {
                         <Button
                             className="bg-purple-600 hover:bg-purple-700 text-white p-3 h-auto text-lg font-bold mt-4"
                             onClick={handlePrintTicket}
-                            disabled={!activeAssignedTicketData?.data}
+                            disabled={!transferredNewTicketNumber}
                         >
-                            Print Ticket
+                            Print Ticket{ transferredNewTicketNumber ? ` - ${transferredNewTicketNumber.ticket_id}` : ''}
                         </Button>
                     </div>
                 </div>
             </div>
+            <CancelTicket isOpen={counterServiceDisclosure.isOpen('cancelTicket')} onClose={() => counterServiceDisclosure.onClose('cancelTicket')} activeTicket={activeAssignedTicketData?.data} />
         </div>
     );
 };

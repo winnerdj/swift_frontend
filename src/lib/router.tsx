@@ -10,6 +10,7 @@ import { Kiosk } from "@/features/queue-management/kiosk";
 import { QueueDisplay } from "@/features/queue-management/queue-display";
 import { Ticket } from "@/features/transaction-logs/ticket-logs";
 import { CounterService } from "@/features/queue-management/counter-service";
+import { Dashboard } from "@/features/dashboard-and-reports/dashboard";
 
 import { PvmDashboard } from "@/features/pvm-dashboard";
 
@@ -87,6 +88,15 @@ const route = createBrowserRouter([
                 handle: {
                     crumb: () => (
                         <Link path='/ticket' label="Ticket Logs"/>
+                    )
+                }
+            },
+            {
+                path:'/dashboard',
+                element: <Dashboard/>,
+                handle: {
+                    crumb: () => (
+                        <Link path='/dashboard' label="Dashboard"/>
                     )
                 }
             },

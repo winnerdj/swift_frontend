@@ -12,8 +12,6 @@ import { Ticket } from "@/features/transaction-logs/ticket-logs";
 import { CounterService } from "@/features/queue-management/counter-service";
 import { Dashboard } from "@/features/dashboard-and-reports/dashboard";
 
-import { PvmDashboard } from "@/features/pvm-dashboard";
-
 const route = createBrowserRouter([
     {
         path:'/',
@@ -97,15 +95,6 @@ const route = createBrowserRouter([
                 handle: {
                     crumb: () => (
                         <Link path='/dashboard' label="Dashboard"/>
-                    )
-                }
-            },
-            {
-                path:'/pvm/dashboard',
-                element: <PvmDashboard/>,
-                handle: {
-                    crumb: () => (
-                        <Link path='/dashboard' label="PVM Dashboard"/>
                     )
                 }
             }

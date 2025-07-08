@@ -31,12 +31,12 @@ const Service: React.FC<ServiceProps> = () => {
                     <UserRoundPlus/>
                     Create Service
                 </Button>
-                <Button variant={'ghost'} className='p-2 h-7 hover:bg-gray-400 gap-1.5' onClick={() => console.log('selectedRows',selectedRows)}><CodeXml/>
+                {/* <Button variant={'ghost'} className='p-2 h-7 hover:bg-gray-400 gap-1.5' onClick={() => console.log('selectedRows',selectedRows)}><CodeXml/>
                 log selectedRows
                 </Button>
                 <Button variant={'ghost'} className='p-2 h-7 hover:bg-gray-400 gap-1.5' onClick={() => console.log('clickedRow',clickedRow)}><CodeXml/>
                 log clickedRow
-                </Button>
+                </Button> */}
             </div>
             <div className='rounded-xs h-full bg-gray-50 shadow-2xs p-4'>
                 <ServiceContextProvider>

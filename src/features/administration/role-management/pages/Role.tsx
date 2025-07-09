@@ -5,7 +5,7 @@ import RoleTable from '../components/table/RoleTable';
 import CreateRole from '../components/modals/CreateRole';
 import UpdateRole from '../components/modals/UpdateRole';
 import { RoleContextProvider } from '../components/context/RoleContext';
-import { UserRoundPlus, CodeXml } from 'lucide-react'
+import { UserRoundPlus } from 'lucide-react'
 import { RowSelectionState } from '@tanstack/react-table';
 import { roleTableType } from '../types';
 

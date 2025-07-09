@@ -12,10 +12,9 @@ import {
 import storage from 'redux-persist/lib/storage';
 import { apiSlice, errorHandler } from './api'
 
-import tripSlice from './slices/trip.slice';
 import authSlice from './slices/auth.slice';
 import workSlice from './slices/work.slice';
-import pvmDashboardSlice from './slices/pvm-dashboard.slice'
+import dashboardSlice from './slices/dashboard.slice';
 
 
 const authPersistConfig  = {
@@ -35,8 +34,7 @@ export const store = configureStore({
     [apiSlice.reducerPath]: apiSlice.reducer,
     auth                  : persistReducer(authPersistConfig , authSlice),
     workSession           : workSlice,
-    tripSlice             : tripSlice,
-    pvmDashboardSlice     : pvmDashboardSlice
+    dashboardState        : dashboardSlice
 
   }),
   middleware: (getDefaultMiddleware) =>

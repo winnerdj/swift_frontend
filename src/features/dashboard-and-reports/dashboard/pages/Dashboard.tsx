@@ -1,5 +1,14 @@
-import React, { useEffect, useState, useMemo } from 'react';
-import { useGetTicketsTodayByServiceIdQuery } from '@/lib/redux/api/work.api';
+import useDisclosure from '@/hooks/useDisclosure';
+import {
+    useGetTicketsTodayByServiceIdQuery,
+    useGetActiveCountersTodayByServiceIdQuery
+} from '@/lib/redux/api/work.api';
+import React, { useEffect, useState } from 'react';
+import { useAppSelector } from "@/hooks/redux.hooks"; // Import useAppSelector
+import { getDashboardState } from "@/lib/redux/slices/dashboard.slice";
+import { Gauge } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import SelectServiceDialog from '../components/modals/SelectServiceDialog';
 
 // Define the Ticket interface based on the provided example data structure
 interface Ticket {
@@ -103,32 +112,44 @@ const formatDuration = (milliseconds: number | null): string => {
 };
 
 const Dashboard: React.FC = () => {
+    const dashboardDisclosure = useDisclosure();
+
+    // Get the selected service ID and location from Redux
+    const dashboardState = useAppSelector(getDashboardState);
+    const { service_id, service_location, service_name } = dashboardState;
+
     // Fetch ticket data using the provided Redux Toolkit Query hook
-    const { data: ticketsResponse = { data: [] }, isLoading } = useGetTicketsTodayByServiceIdQuery(
+    const { data: ticketsResponse = { data: [] }, isLoading: ticketsIsLoading } = useGetTicketsTodayByServiceIdQuery(
         {
-            service_id: '2ac1e6ae-821a-4591-83fe-5f8c55c7fd3d',
+            service_id: service_id || '',
         },
-        // Optional RTK Query options (commented out as per original code)
-        // {
-        //     pollingInterval: 30000,
-        //     skip: !workSessionDetails?.service_id,
-        //     refetchOnFocus: true, // Refetch when the window is focused
-        //     refetchOnReconnect: true // Refetch when the browser reconnects
-        // }
+        {
+            skip: !service_id,
+            refetchOnMountOrArgChange: true,
+            pollingInterval: 30000,
+            skipPollingIfUnfocused: true
+        }
+    );
+
+    // Fetch active counters using the provided Redux Toolkit Query hook
+    const { data: countersResponse = { data: [] }, isLoading: countersIsLoading } = useGetActiveCountersTodayByServiceIdQuery(
+        {
+            service_id: service_id || '',
+        },
+        {
+            skip: !service_id,
+            refetchOnMountOrArgChange: true,
+            pollingInterval: 30000,
+            skipPollingIfUnfocused: true
+        }
     );
 
     // State to hold the dynamically calculated processor data
     const [calculatedProcessorData, setCalculatedProcessorData] = useState<ProcessorStats[]>([]);
+    const [activeCounters, setActiveCounters] = useState<number>(0);
 
-    /**
-     * Effect hook to process ticket data once it's fetched.
-     * This effect runs when ticketsResponse or isLoading changes.
-     */
     useEffect(() => {
-        if (ticketsResponse?.data) {
-            console.log('Tickets fetched:', ticketsResponse.data.length);
-            console.log('Tickets:', ticketsResponse.data);
-
+        if(ticketsResponse?.data.length > 0) {
             const allTickets: Ticket[] = ticketsResponse.data;
 
             // A map to group tickets and accumulate statistics by processor
@@ -212,7 +233,11 @@ const Dashboard: React.FC = () => {
             // Update the state with the newly calculated processor data
             setCalculatedProcessorData(newProcessorData);
         }
-    }, [ticketsResponse, isLoading]); // Dependencies for the useEffect hook
+
+        if (countersResponse?.data.length > 0) {
+            setActiveCounters(countersResponse?.data.length);
+        }
+    }, [ticketsResponse, ticketsIsLoading, countersResponse, countersIsLoading]);
 
     // Get all tickets from the response, defaulting to an empty array if undefined
     const allTickets: Ticket[] = ticketsResponse.data || [];
@@ -269,37 +294,29 @@ const Dashboard: React.FC = () => {
     const maxServiceTime = formatDuration(allServiceDurations.length > 0 ? Math.max(...allServiceDurations) : 0);
     const totalServiceTime = formatDuration(totalAvgServiceTimeMs);
 
-    // Memoized current date and time for the header to avoid re-calculating on every render
-    const currentDate = useMemo(() => new Date().toISOString().split('T')[0], []);
-    const currentTime = useMemo(() => {
-        const now = new Date();
-        return now.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: true });
-    }, []);
-
     return (
-        <div className="grid gap-2 pl-2 pr-2 font-sans"> {/* Added font-sans for Inter font */}
+        <div className="grid gap-2 pl-2 pr-2 font-sans">
             {/* HEADER */}
             <div className='flex justify-between items-start bg-white p-3 shadow-md mb-4 rounded-md'>
                 <div className="text-sm font-semibold">
-                    <p>Location: ZEUS</p>
-                    <p>Service: POD</p>
-                    <p>Date: {currentDate}</p> {/* Dynamically displaying current date */}
+                    <p>Location: {service_location ? service_location.toUpperCase() : 'N/A'}</p>
+                    <p>Service: {service_name ? service_name.toUpperCase() : 'N/A'}</p>
                 </div>
-                <div className="text-right text-sm font-semibold">
-                    <p>Date: {currentDate}</p> {/* Dynamically displaying current date */}
-                    <p>Time: {currentTime}</p> {/* Dynamically displaying current time */}
+                <div className="text-right text-sm font-semibold self-center">
+                    <Button variant={'ghost'} className='p-3 h-7 hover:bg-gray-400 gap-1.5 border border-gray-300' onClick={() => dashboardDisclosure.onOpen('selectService')}>
+                        <Gauge />
+                        Change Service
+                    </Button>
                 </div>
             </div>
 
             {/* MAIN CONTENT AREA */}
-            <div className="h-full bg-white flex flex-col flex-grow bg-gray-100 p-4 rounded-md shadow-2xs">
+            <div className="h-full flex flex-col flex-grow bg-gray-100 p-4 rounded-md shadow-2xs">
                 {/* Active Counters & Total Tickets */}
                 <div className="flex justify-center items-center space-x-6 mb-4">
-                    {/* 'ACTIVE COUNTERS' remains hardcoded as data for it is not available in ticketResponse */}
                     <div className="bg-black text-white px-8 py-4 rounded-lg shadow-md text-2xl font-bold">
-                        ACTIVE COUNTERS: 4
+                        ACTIVE COUNTERS: {activeCounters}
                     </div>
-                    {/* 'TOTAL TICKETS' is now dynamically calculated from the fetched data */}
                     <div className="bg-black text-white px-8 py-4 rounded-lg shadow-md text-2xl font-bold">
                         TOTAL TICKETS: {allTickets.length}
                     </div>
@@ -317,7 +334,7 @@ const Dashboard: React.FC = () => {
 
                 {/* Average Times Section - Now dynamically calculated */}
                 <div className="text-center text-sm mb-4">
-                    Based on all available transactions
+                    Based on today's transactions
                 </div>
                 <div className="flex justify-center space-x-8 mb-6">
                     <div className="border border-gray-300 p-4 bg-white shadow-sm flex-1 max-w-lg rounded-md">
@@ -380,6 +397,7 @@ const Dashboard: React.FC = () => {
                     </table>
                 </div>
             </div>
+            <SelectServiceDialog isOpen={dashboardDisclosure.isOpen('selectService')} onClose={() => dashboardDisclosure.onClose('selectService')} />
         </div>
     );
 };

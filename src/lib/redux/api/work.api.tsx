@@ -9,6 +9,10 @@ type getTicketsTodayByServiceId = {
     service_id: string;
 }
 
+type getActiveCountersTodayByServiceId = {
+    service_id: string;
+}
+
 type startServing = {
     ticket_id: string;
     ticket_status: number;
@@ -58,7 +62,8 @@ export const {
     usePostNoShowMutation,
     useOverrideTicketMutation,
     useCancelTicketMutation,
-    useTransferTicketMutation
+    useTransferTicketMutation,
+    useGetActiveCountersTodayByServiceIdQuery
 } = apiSlice.injectEndpoints({
     endpoints: builder => ({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -107,6 +112,14 @@ export const {
         getTicketsTodayByServiceId: builder.query<any, getTicketsTodayByServiceId>({
             query: (args) => ({
                 url: '/work/all-tickets-today-by-service',
+                method: 'GET',
+                params: args,
+            }),
+            providesTags: ['TodayTicketsByService']
+        }),
+        getActiveCountersTodayByServiceId: builder.query<any, getActiveCountersTodayByServiceId>({
+            query: (args) => ({
+                url: '/work/all-active-counters-today-by-service',
                 method: 'GET',
                 params: args,
             }),

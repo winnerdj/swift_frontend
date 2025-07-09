@@ -152,7 +152,9 @@ const Dashboard: React.FC = () => {
         if(ticketsResponse?.data.length > 0) {
             const allTickets: Ticket[] = ticketsResponse.data;
 
-            // A map to group tickets and accumulate statistics by processor
+            // Filter out tickets that are 'Unassigned' before processing
+            const assignedTickets = allTickets.filter(ticket => ticket.ticket_support !== null && ticket.ticket_support !== undefined && ticket.ticket_support !== '');
+
             const processorsMap: {
                 [key: string]: {
                     totalTickets: number;
@@ -161,13 +163,11 @@ const Dashboard: React.FC = () => {
                 };
             } = {};
 
-            // Iterate over all fetched tickets to populate the processorsMap
-            allTickets.forEach((ticket) => {
-                // Use ticket_support as the processor identifier. If null, use 'Unassigned'.
-                const processorId = ticket.ticket_support || 'Unassigned';
+            // Iterate only over assigned tickets
+            assignedTickets.forEach((ticket) => {
+                const processorId = ticket.ticket_support!; // We know it's not null/undefined here
 
-                // Initialize processor entry if it doesn't exist
-                if (!processorsMap[processorId]) {
+                if(!processorsMap[processorId]) {
                     processorsMap[processorId] = {
                         totalTickets: 0,
                         serviceDurations: [],
@@ -175,66 +175,56 @@ const Dashboard: React.FC = () => {
                     };
                 }
 
-                // Increment total tickets for the current processor
                 processorsMap[processorId].totalTickets++;
 
-                // Calculate Service Time: from ticket_now_serving_datetime to ticket_served_datetime
                 const nowServingTime = parseDateTime(ticket.ticket_now_serving_datetime);
                 const servedTime = parseDateTime(ticket.ticket_served_datetime);
 
                 if (nowServingTime && servedTime) {
                     const serviceDuration = servedTime.getTime() - nowServingTime.getTime();
-                    // Add duration only if it's non-negative (valid time progression)
                     if (serviceDuration >= 0) {
                         processorsMap[processorId].serviceDurations.push(serviceDuration);
                     }
                 }
 
-                // Calculate Waiting Time: from ticket_create_datetime to ticket_now_serving_datetime
                 const createTime = parseDateTime(ticket.ticket_create_datetime);
                 if (createTime && nowServingTime) {
                     const waitingDuration = nowServingTime.getTime() - createTime.getTime();
-                    // Add duration only if it's non-negative
                     if (waitingDuration >= 0) {
                         processorsMap[processorId].waitingDurations.push(waitingDuration);
                     }
                 }
             });
 
-            // Convert the processorsMap into an array of ProcessorStats objects
             const newProcessorData: ProcessorStats[] = Object.keys(processorsMap).map((processorId) => {
                 const stats = processorsMap[processorId];
 
-                // --- Service Time Calculations ---
                 const totalServiceMs = stats.serviceDurations.reduce((sum, d) => sum + d, 0);
                 const aveServiceMs = stats.serviceDurations.length > 0 ? totalServiceMs / stats.serviceDurations.length : 0;
                 const minServiceMs = stats.serviceDurations.length > 0 ? Math.min(...stats.serviceDurations) : 0;
                 const maxServiceMs = stats.serviceDurations.length > 0 ? Math.max(...stats.serviceDurations) : 0;
 
-                // --- Waiting Time Calculation (Average) ---
                 const totalWaitingMs = stats.waitingDurations.reduce((sum, d) => sum + d, 0);
                 const aveWaitingMs = stats.waitingDurations.length > 0 ? totalWaitingMs / stats.waitingDurations.length : 0;
 
                 return {
-                    name: processorId, // Using the processorId (ticket_support value) as the name
+                    name: processorId,
                     totalTickets: stats.totalTickets,
                     aveService: formatDuration(aveServiceMs),
                     minService: formatDuration(minServiceMs),
                     maxService: formatDuration(maxServiceMs),
                     totalService: formatDuration(totalServiceMs),
-                    waitingTime: formatDuration(aveWaitingMs), // Displaying average waiting time
-                    // These fields are not available in the provided ticket data, so they are placeholders.
+                    waitingTime: formatDuration(aveWaitingMs),
                     idleTime: "0m",
                     breakTime: "0m",
                     queueDepartureTime: "0m",
                 };
             });
 
-            // Update the state with the newly calculated processor data
             setCalculatedProcessorData(newProcessorData);
         }
 
-        if (countersResponse?.data.length > 0) {
+        if(countersResponse?.data.length > 0) {
             setActiveCounters(countersResponse?.data.length);
         }
     }, [ticketsResponse, ticketsIsLoading, countersResponse, countersIsLoading]);

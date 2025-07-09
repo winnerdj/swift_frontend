@@ -1,4 +1,4 @@
-export type serviceTableType = {
+export type userActivityTableType = {
     service_id : string,
     service_location : string,
     qc_service_location : string,
@@ -17,4 +17,7 @@ export type serviceTableType = {
     service_remarks1 : string,
     service_remarks2 : string,
     service_remarks3 : string,
+    srv_user_activity : {
+        service_name : string,
+    }
 }

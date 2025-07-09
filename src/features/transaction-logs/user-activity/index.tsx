@@ -1,1 +1,1 @@
-export { default as Service } from './pages/Service'
+export { default as UserActivity } from './pages/UserActivity'

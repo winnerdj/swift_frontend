@@ -11,6 +11,7 @@ import { QueueDisplay } from "@/features/queue-management/queue-display";
 import { Ticket } from "@/features/transaction-logs/ticket-logs";
 import { CounterService } from "@/features/queue-management/counter-service";
 import { Dashboard } from "@/features/dashboard-and-reports/dashboard";
+import { UserActivity } from "@/features/transaction-logs/user-activity";
 
 const route = createBrowserRouter([
     {
@@ -95,6 +96,15 @@ const route = createBrowserRouter([
                 handle: {
                     crumb: () => (
                         <Link path='/dashboard' label="Dashboard"/>
+                    )
+                }
+            },
+            {
+                path:'/user-activity',
+                element: <UserActivity/>,
+                handle: {
+                    crumb: () => (
+                        <Link path='/user-activity' label="User Activity"/>
                     )
                 }
             }

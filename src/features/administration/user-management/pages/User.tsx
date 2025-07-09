@@ -21,9 +21,9 @@ const User: React.FC<UserProps> = () => {
     const [selectedRows, setSelectedRows] = React.useState<userTableType[]>([]);
     const [clickedRow, setClickedRow] = React.useState<userTableType | null>(null);
 
-    React.useEffect(() => {
-        console.log('rowSelection', rowSelection)
-    }, [rowSelection])
+    // React.useEffect(() => {
+    //     console.log('rowSelection', rowSelection)
+    // }, [rowSelection])
 
     return (
         <div className='grid gap-3 pl-2 pr-2'>

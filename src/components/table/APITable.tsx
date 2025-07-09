@@ -37,7 +37,7 @@ function APITable<TData, TValue>({ columns, route,
             filters: { ...props.filters, searchTerm },
         },
         {
-            refetchOnMountOrArgChange: true,
+            refetchOnMountOrArgChange: true
         }
     );
 

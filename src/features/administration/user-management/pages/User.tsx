@@ -5,7 +5,10 @@ import UserTable from '../components/table/UserTable';
 import CreateUser from '../components/modals/CreateUser';
 import UpdateUser from '../components/modals/UpdateUser';
 import { UserContextProvider } from '../components/context/RoleContext';
-import { UserRoundPlus, CodeXml } from 'lucide-react'
+import {
+    UserRoundPlus,
+    // CodeXml
+} from 'lucide-react'
 import { RowSelectionState } from '@tanstack/react-table';
 import { userTableType } from '../types';
 

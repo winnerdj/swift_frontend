@@ -9,14 +9,14 @@ import FormInput from '@/components/form/FormInput';
 import { Button } from '@/components/ui/button';
 import { Switch } from '@/components/ui/switch';
 import { useUpdateServiceMutation } from '@/lib/redux/api/service.api';
-import { serviceTableType } from '../../types';
+import { userActivityTableType } from '../../types';
 import * as yup from 'yup';
 import APISelect from '@/components/select/APISelect';
 
 interface UpdateServiceProps {
     onClose: () => void;
     isOpen: boolean;
-    selectedService: serviceTableType | null;
+    selectedService: userActivityTableType | null;
 }
 
 const updateServiceSchema = yup.object({

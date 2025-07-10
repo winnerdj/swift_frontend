@@ -5,7 +5,10 @@ import QuickcodeTable from '../components/table/QuickcodeTable';
 import CreateQuickcode from '../components/modals/CreateQuickcode';
 import UpdateQuickcode from '../components/modals/UpdateQuickcode';
 import { QuickcodeContextProvider } from '../components/context/QuickcodeContext';
-import { UserRoundPlus, CodeXml } from 'lucide-react'
+import {
+    UserRoundPlus,
+    // CodeXml
+} from 'lucide-react'
 import { RowSelectionState } from '@tanstack/react-table';
 import { quickcodeTableType } from '../types';
 

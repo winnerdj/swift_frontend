@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { apiSlice } from '../api';
 
-// export type routes = 'role' | 'quickcode' | 'available-counter'
+export type routes = 'role' | 'quickcode' | 'available-counter'
 
 export const {
     useGetSelectDataQuery,

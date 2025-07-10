@@ -51,8 +51,9 @@ const Kiosk: React.FC = () => {
         }
     };
 
-    const handleCreateTicket = (ticketNum: number) => { // Receive ticket number from modal
+    const handleCreateTicket = (ticketNum: number) => {
         setTicketNumber(ticketNum);
+        console.log('Created ticket number: ', ticketNumber)
     };
 
     const toggleFullscreen = () => {
@@ -150,10 +151,10 @@ const Kiosk: React.FC = () => {
                 isOpen={kioskDisclosure.isOpen('createPodTicket')}
                 onClose={() => {
                     kioskDisclosure.onClose('createPodTicket');
-                    setSelectedService(null); // Reset
+                    setSelectedService(null);
                 }}
                 selectedService={selectedService}
-                onCreateTicket={handleCreateTicket} // Pass callback
+                onCreateTicket={handleCreateTicket}
             />
 
             <CreateDefautTicket

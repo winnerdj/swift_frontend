@@ -20,7 +20,7 @@ const CreateDefaultTicket: React.FC<{
     onCreateTicket: (ticketNumber: number) => void;
 }> = (props) => {
     const { onClose, isOpen, selectedService, onCreateTicket } = props;
-    const [createTicket, createTicketProps] = useCreateTicketMutation();
+    const [createTicket] = useCreateTicketMutation();
 
     // Handle submission for the second form (creating the ticket)
     const handleCreateTicket = async() => {

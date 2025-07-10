@@ -10,6 +10,7 @@ import * as yup from 'yup';
 import { useCreateTicketMutation, useLazyGetTripDetailsQuery } from '@/lib/redux/api/ticket.api'; // ***CHANGED to useLazyGetTripDetailsQuery***
 import { toast } from 'react-toastify';
 import moment from 'moment';
+import qz from 'qz-tray';
 
 interface Service {
     service_id: string;
@@ -83,7 +84,7 @@ const CreatePodTicket: React.FC<{
             // ***Trigger the lazy query***
             const response = await fetchTripDetails({ tripPlanNo: formData.tripPlanNo }).unwrap();
 
-            if(response && response.data.length > 0) {
+            if (response && response.data.length > 0) {
                 // Populate the second form with fetched data
                 formTicket.setValue('ticket_trip_number', response.data[0].tripPlanNo || '');
                 formTicket.setValue('ticket_vehicle_type', response.data[0].truckType || '');
@@ -129,62 +130,147 @@ const CreatePodTicket: React.FC<{
                 response: null
             };
 
-            if(response.data) {
+            if (response.data) {
                 console.log("Ticket created successfully:", response.data);
                 createdTicket.response = response;
             }
 
-            if(response.success && response.data) {
+            if (response.success && response.data) {
                 toast.success(response.message);
                 const newTicketNumber = response.ticket_number || Math.floor(Math.random() * 1000) + 1; // Use actual ticket number if available
                 onCreateTicket(newTicketNumber);
                 formTicket.reset();
                 formTrip.reset();
-                handlePrintTicket({ createdTicket });
+                await handlePrintTicket({ createdTicket });
                 onClose();
             }
-            else if(response.error) {
+            else if (response.error) {
                 toast.error(response.error);
             }
             else {
                 toast.error("An unexpected error occurred during ticket creation.");
             }
-        } 
-        catch(error: any) {
+        }
+        catch (error: any) {
             console.error("Error creating ticket:", error);
             const errorMessage = error?.data?.error || error?.message || "Failed to create ticket.";
             toast.error(errorMessage);
         }
     };
 
-    const handlePrintTicket = ({ createdTicket }: { createdTicket: any }) => {
-        if(!createdTicket) {
-            toast.error("No ticket data to print.");
-            return;
-        }
+    const handlePrintTicket = async ({ createdTicket }: { createdTicket: any }) => {
+        try {
+            if (!createdTicket) {
+                toast.error("No ticket data to print.");
+                return;
+            }
 
-        const printWindow = window.open('', '_blank');
-        if(printWindow) {
+            await qz.websocket.connect();
+            const config = qz.configs.create('BIXOLON SRP-E302'); // printer name
             // Construct dynamic data for the print window
             const serviceName = createdTicket.selectedService?.service_name || "undefined";
             const serviceLocation = createdTicket.selectedService?.qc_service_location_desc || "undefined";
             const ticketNumber = createdTicket.response?.data?.ticket_id || "undefined";
             const ticketCreationDate = createdTicket.response?.data?.createdAt ?
-                            moment(createdTicket.response.data.createdAt).format('MM/DD/YYYY') : "undefined";
+                moment(createdTicket.response.data.createdAt).format('MM/DD/YYYY') : "undefined";
             const ticketCreationTime = createdTicket.response?.data?.createdAt ?
-                            moment(createdTicket.response.data.createdAt).format('LT') : "undefined";
+                moment(createdTicket.response.data.createdAt).format('LT') : "undefined";
 
-            printWindow.document.write(`
-                <html>
-                <head>
-                    <title>Ticket</title>
-                    <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
-                    <style>
-                        body {
-                            font-family: 'Inter', sans-serif;
-                            margin: 0;
-                            color: #000;
-                            font-size: 0.8em;
+            const html = `
+            <html>
+            <head>
+                <title>Ticket</title>
+                <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
+                <style>
+                    body {
+                        font-family: 'Inter', sans-serif;
+                        margin: 0;
+                        color: #000;
+                        font-size: 0.8em;
+                    }
+                    .ticket-container {
+                        padding: 5px;
+                        width: 100%;
+                        box-sizing: border-box;
+                    }
+                    p {
+                        margin: 0;
+                        padding: 1px;
+                    }
+                    h1 {
+                        font-size: 1.2em;
+                        text-align: center;
+                        margin: 5px 0;
+                    }
+                    .ticket-message {
+                        font-size: 1em;
+                        padding:0 5px;
+                        font-weight: 600;
+                    }
+                    .ticket-number {
+                        font-size: 1.8em;
+                        font-weight: bold;
+                        text-align: center;
+                        margin: 8px 0;
+                        padding: 5px;
+                        border-top: 2px solid #000;
+                        border-bottom: 2px solid #000;
+                    }
+                    #barcode {
+                        max-width: 100%;
+                        height: auto;
+                        display: block;
+                        margin: 0 auto;
+                    }
+                    .barcode-container {
+                        text-align: center;
+                        border-top: 2px solid #000;
+                        margin-top: 8px;
+                        padding-top: 5px;
+                        padding-left: 0px;
+                        padding-right: 0px;
+                    }
+                    .barcode-label {
+                        text-align: center;
+                        font-size: 0.8em;
+                    }
+                    .main-content {
+                        display: flex;
+                        flex-wrap: wrap;
+                        justify-content: space-between;
+                        align-items: flex-start;
+                        margin-top: 5px;
+                    }
+                    .primary-info, .ticket-details {
+                        flex: 1;
+                        min-width: 49%;
+                        box-sizing: border-box;
+                    }
+                    .primary-info {
+                        padding-right: 5px;
+                    }
+                    .ticket-details {
+                        padding-left: 5px;
+                    }
+                    .ticket-details p {
+                        display: flex;
+                        align-items: baseline;
+                        margin-left: auto;
+                    }
+                    .ticket-details .label {
+                        display: inline-block;
+                        width: 50px;
+                        text-align: left;
+                        margin-right: 5px;
+                        flex-shrink: 0;
+                    }
+                    @media print {
+                        body { margin: 0; }
+                        .ticket-container {
+                            border: none;
+                            box-shadow: none;
+                            max-width: none;
+                            width: 100%;
                         }
                         .ticket-container {
                             padding: 5px;
@@ -302,52 +388,61 @@ const CreatePodTicket: React.FC<{
                             const ticketNumber = "${ticketNumber}"; // Get the dynamic ticket number
                             console.log('Print window onload. Ticket Number:', ticketNumber);
 
-                            if(ticketNumber && ticketNumber !== "undefined") {
-                                JsBarcode("#barcode", ticketNumber, {
-                                    format: "CODE128",
-                                    displayValue: true,
-                                    height: 35,
-                                    width: 1.5,
-                                    margin: 0,
-                                    background: "#ffffff",
-                                    lineColor: "#000000",
-                                    valid: function () {
-                                        console.log('Barcode rendered, attempting to print...');
-                                        setTimeout(() => {
-                                            window.print();
-                                            window.onafterprint = function() {
-                                                console.log('After print, closing window.');
-                                                window.close();
-                                            };
-                                        }, 150);
-                                    },
-                                    error: function(err) {
-                                        console.error("JsBarcode error:", err);
-                                        setTimeout(() => {
-                                            window.print();
-                                            window.onafterprint = function() {
-                                                window.close();
-                                            };
-                                        }, 150);
-                                    }
-                                });
-                            } else {
-                                console.error('Invalid ticket number for barcode generation. Printing without barcode.');
-                                setTimeout(() => {
-                                    window.print();
-                                    window.onafterprint = function() {
-                                        window.close();
-                                    };
-                                }, 150);
-                            }
-                        };
-                    </script>
-                </body>
-                </html>
-            `);
-            printWindow.document.close();
-        } else {
-            toast.error("Could not open print window. Please allow pop-ups.");
+                        if(ticketNumber && ticketNumber !== "undefined") {
+                            JsBarcode("#barcode", ticketNumber, {
+                                format: "CODE128",
+                                displayValue: true,
+                                height: 35,
+                                width: 1.5,
+                                margin: 0,
+                                background: "#ffffff",
+                                lineColor: "#000000",
+                                valid: function () {
+                                    console.log('Barcode rendered, attempting to print...');
+                                    setTimeout(() => {
+                                        window.print();
+                                        window.onafterprint = function() {
+                                            console.log('After print, closing window.');
+                                            window.close();
+                                        };
+                                    }, 150);
+                                },
+                                error: function(err) {
+                                    console.error("JsBarcode error:", err);
+                                    setTimeout(() => {
+                                        window.print();
+                                        window.onafterprint = function() {
+                                            window.close();
+                                        };
+                                    }, 150);
+                                }
+                            });
+                        } else {
+                            console.error('Invalid ticket number for barcode generation. Printing without barcode.');
+                            setTimeout(() => {
+                                window.print();
+                                window.onafterprint = function() {
+                                    window.close();
+                                };
+                            }, 150);
+                        }
+                    };
+                </script>
+            </body>
+            </html>
+        `
+
+        const data = [
+            {
+                type: 'html',
+                format: 'plain',
+                data: html,
+            }
+        ];
+
+            qz.print(config, data).catch(console.error).finally(async () => { await qz.websocket.disconnect(); });
+        } catch (err) {
+            throw new Error(`Printing failed: ${err}`);
         }
     };
 

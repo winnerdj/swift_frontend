@@ -366,10 +366,10 @@ const CreatePodTicket: React.FC<{
         } catch (error) {
             if (axios.isAxiosError(error)) {
                 // Now 'error' is safely typed as AxiosError
-                console.error("Axios error connecting to BIXOLON SDK:", error.message, error.response?.data);
+                console.error("Axios error connecting to BIXOLON SDK:", error?.message, error?.response?.data);
             } else if (error instanceof Error) {
                 // Handle generic JavaScript Error objects
-                console.error("General error:", error.message);
+                console.error("General error:", error?.message);
             } else {
                 // Handle other unknown error types
                 console.error("An unknown error occurred:", error);

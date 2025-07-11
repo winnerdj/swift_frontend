@@ -12,7 +12,7 @@ import { toast } from 'react-toastify';
 import moment from 'moment';
 import JsBarcode from 'jsbarcode';
 import axios from 'axios';
-import html2canvas from 'html2canvas'; // *** Import html2canvas ***
+import html2canvas from 'html2canvas';
 
 const api = axios.create({
     baseURL: 'https://127.0.0.1:8081',
@@ -169,8 +169,10 @@ const CreatePodTicket: React.FC<{
                 JsBarcode(canvas, text, {
                     format: "CODE128",
                     displayValue: true,
-                    height: 50,
-                    width: 2,
+                    // --- START MODIFICATION for Barcode Size ---
+                    height: 80, // Increased height for a larger barcode (e.g., from 50 to 80 or more)
+                    width: 3,  // Increased width of individual bars (e.g., from 2 to 3 or 4)
+                    // --- END MODIFICATION for Barcode Size ---
                     margin: 5,
                 });
                 return canvas.toDataURL("image/png");
@@ -183,7 +185,7 @@ const CreatePodTicket: React.FC<{
         const barcodeDataURL = generateBarcodeDataURL(ticketNumber);
 
         const printContentHtml = `
-        <!DOCTYPE html>
+            <!DOCTYPE html>
             <html>
                 <head>
                     <style>
@@ -191,7 +193,7 @@ const CreatePodTicket: React.FC<{
                         font-family: 'Inter', sans-serif;
                         margin: 0;
                         color: #000;
-                        font-size: 2.5em; /* This is a very large base font size, consider if this is intentional for thermal printer. It might make content too large. */
+                        font-size: 2.5em;
                         width: 100%;
                         box-sizing: border-box;
                     }
@@ -231,7 +233,7 @@ const CreatePodTicket: React.FC<{
                         padding-top: 5px;
                     }
                     .barcode-container img {
-                        max-width: 100%;
+                        max-width: 100%; /* Ensures the image fits within its container */
                         height: auto;
                         display: block;
                         margin: 0 auto;
@@ -259,26 +261,25 @@ const CreatePodTicket: React.FC<{
                         padding-left: 5px;
                     }
                     .ticket-details p {
-                        display: flex; /* Keep this to make label and value flex items */
-                        align-items: baseline; /* Align text baselines */
-                        /* REMOVE this line: margin-left: auto; */
-                        justify-content: flex-start; /* Ensure content starts from the left */
-                        flex-wrap: wrap; /* Allow items to wrap if line is too long */
+                        display: flex;
+                        align-items: baseline;
+                        justify-content: flex-start;
+                        flex-wrap: wrap;
                     }
                     .ticket-details .label {
-                        display: inline-block; /* Keep as block for width to apply */
-                        width: 70px; /* Increased width slightly for "Location:" to fit comfortably */
-                        min-width: 70px; /* Ensures label doesn't shrink */
-                        text-align: left;
-                        margin-right: 120px;
-                        flex-shrink: 0; /* Prevents the label from shrinking */
-                    }
-                    .ticket-details .value { /* New class for the value part */
                         display: inline-block;
-                        flex-grow: 1; /* Allows the value to take up remaining space */
-                        word-wrap: break-word; /* Breaks long words */
-                        overflow-wrap: break-word; /* Modern equivalent for breaking long words */
-                        hyphens: auto; /* Helps with hyphenation for better wrapping */
+                        width: 70px;
+                        min-width: 70px;
+                        text-align: left;
+                        margin-right: 5px; /* Reduced margin slightly if it's causing issues with wrapping */
+                        flex-shrink: 0;
+                    }
+                    .ticket-details .value {
+                        display: inline-block;
+                        flex-grow: 1;
+                        word-wrap: break-word;
+                        overflow-wrap: break-word;
+                        hyphens: auto;
                     }
                     </style>
                     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
@@ -323,13 +324,10 @@ const CreatePodTicket: React.FC<{
         `;
 
         try {
-            // Create a temporary div to render the HTML content
             const printContentElement = document.createElement('div');
             printContentElement.innerHTML = printContentHtml;
-            // Append it to the body temporarily to render it for html2canvas
             document.body.appendChild(printContentElement);
 
-            // Use html2canvas to convert the HTML content to a canvas
             const canvas = await html2canvas(printContentElement, {
                 // You might need to adjust these options for better rendering
                 scale: 2, // Increase scale for higher resolution
@@ -337,29 +335,16 @@ const CreatePodTicket: React.FC<{
                 logging: false, // Disable logging for production
             });
 
-            // Remove the temporary element
             document.body.removeChild(printContentElement);
 
-            // Get the data URL (Base64 string) of the canvas image
             const canvasBase64 = canvas.toDataURL("image/png");
-
-            // const requestBodyPrint = `{
-            //     "id":1,
-            //     "functions":{
-            //         "func0":{"checkPrinterStatus":[]},
-            //         "func1":{"printText":["Canvas Image Sample \\n\\n",0,0,false,false,false,0,0]},
-            //         "func2":{"printBitmap":["${canvasBase64}",400,1,false]},
-            //         "func3":{"printText":["\\n\\n\\n\\n\\n",0,0,false,false,false,0,0]},
-            //         "func4":{"cutPaper":[1]}
-            //     }
-            // }`;
 
             const requestBodyPrint = `{
                 "id":1,
                 "functions":{
                     "func0":{"checkPrinterStatus":[]},
                     "func1":{"printText":["Canvas Image Sample \\n\\n",0,0,false,false,false,0,0]},
-                    "func2":{"printBitmap":["${canvasBase64}",576,1,false]},
+                    "func2":{"printBitmap":["${canvasBase64}", 576, 1, false]},
                     "func3":{"printText":["\\n\\n\\n\\n\\n",0,0,false,false,false,0,0]},
                     "func4":{"cutPaper":[1]}
                 }

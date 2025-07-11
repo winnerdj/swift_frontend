@@ -365,15 +365,14 @@ const CreatePodTicket: React.FC<{
             }
         } catch (error) {
             if (axios.isAxiosError(error)) {
+                // Now 'error' is safely typed as AxiosError
                 console.error("Axios error connecting to BIXOLON SDK:", error.message, error.response?.data);
-                if (error.code === 'ERR_NETWORK' || error.response?.status === 0) {
-                    toast.error('Network error or CORS issue. Ensure BIXOLON SDK is running and configured correctly.');
-                } else {
-                    toast.error(`Error sending print job: ${error.response?.data?.error || error.message}`);
-                }
+            } else if (error instanceof Error) {
+                // Handle generic JavaScript Error objects
+                console.error("General error:", error.message);
             } else {
-                console.error("Unknown error connecting to BIXOLON SDK:", error);
-                toast.error('An unknown error occurred while connecting to the BIXOLON printer SDK.');
+                // Handle other unknown error types
+                console.error("An unknown error occurred:", error);
             }
         }
     };

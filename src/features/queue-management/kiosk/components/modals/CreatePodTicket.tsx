@@ -17,7 +17,8 @@ import html2canvas from 'html2canvas';
 const api = axios.create({
     baseURL: 'https://127.0.0.1:8081',
     headers: {
-        'Content-Type': 'application/x-www-form-urlencoded'
+        'Content-Type': 'application/x-www-form-urlencoded',
+        'Access-Control-Request-Private-Network': true
     }
 });
 

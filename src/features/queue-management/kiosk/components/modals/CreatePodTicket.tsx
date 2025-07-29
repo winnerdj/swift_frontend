@@ -171,8 +171,8 @@ const CreatePodTicket: React.FC<{
                     format: "CODE128",
                     displayValue: true,
                     // --- START MODIFICATION for Barcode Size ---
-                    height: 80, // Increased height for a larger barcode (e.g., from 50 to 80 or more)
-                    width: 3,  // Increased width of individual bars (e.g., from 2 to 3 or 4)
+                    height: 80,
+                    width: 3,
                     // --- END MODIFICATION for Barcode Size ---
                     margin: 5,
                 });
@@ -194,13 +194,13 @@ const CreatePodTicket: React.FC<{
                         font-family: 'Inter', sans-serif;
                         margin: 0;
                         color: #000;
-                        font-size: 2.5em;
+                        font-size: 60px; /* Very large base font size. Be mindful of print dimensions. */
                         width: 100%;
                         box-sizing: border-box;
                     }
                     .ticket-container {
                         padding: 5px;
-                        width: 100%;
+                        width: 100%; /* Ensure the container uses full width */
                         box-sizing: border-box;
                     }
                     p {
@@ -212,75 +212,82 @@ const CreatePodTicket: React.FC<{
                         text-align: center;
                         margin: 5px 0;
                     }
-                    .ticket-message {
-                        font-size: 1em;
-                        padding:0 5px;
-                        font-weight: 600;
-                        text-align: center;
+                    .ticket-header {
+                        font-size: 1;
+                        padding: 0 0 20px 0;
                     }
                     .ticket-number {
                         font-size: 1.8em;
                         font-weight: bold;
                         text-align: center;
-                        margin: 8px 0;
-                        padding: 5px;
-                        border-top: 2px solid #000;
-                        border-bottom: 2px solid #000;
+                        padding: 0 0 100px 0;
+                        border-top: 13px solid #000;
+                        border-bottom: 13px solid #000;
+                    }
+                    .ticket-message {
+                        font-size: 1em;
+                        font-weight: 500;
+                        text-align: center;
                     }
                     .barcode-container {
-                        text-align: center;
+                        text-align: center; /* Keeps the image centered if it's smaller than the container */
                         border-top: 2px solid #000;
                         margin-top: 8px;
                         padding-top: 5px;
+                        width: 100%; /* Explicitly set width to 90% of its parent (.ticket-container) */
+                        box-sizing: border-box; /* Include padding in the width calculation */
                     }
                     .barcode-container img {
-                        max-width: 100%; /* Ensures the image fits within its container */
-                        height: auto;
-                        display: block;
-                        margin: 0 auto;
+                        width: 100%; /* Make the image take up 100% of its parent's width */
+                        max-width: 100%; /* Ensures it doesn't go over 100% if its intrinsic size is larger */
+                        height: auto; /* Maintain aspect ratio */
+                        display: block; /* Important for removing any extra space below the image */
+                        margin: 0 auto; /* Keep it centered, though width: 100% will fill */
                     }
                     .barcode-label {
                         text-align: center;
-                        font-size: 0.8em;
+                        font-size: 0.5em;
                     }
                     .main-content {
                         display: flex;
-                        flex-wrap: wrap;
                         justify-content: space-between;
                         align-items: flex-start;
                         margin-top: 5px;
-                    }
-                    .primary-info, .ticket-details {
-                        flex: 1;
-                        min-width: 49%;
-                        box-sizing: border-box;
+                        padding: 0 0 50px 0;
                     }
                     .primary-info {
+                        flex: 0 0 35%; /* Adjusted for better 2/3 and 1/3 split, leaving room for gap */
                         padding-right: 5px;
+                        box-sizing: border-box;
                     }
                     .ticket-details {
+                        flex: 0 0 65%; /* Adjusted for better 2/3 and 1/3 split */
                         padding-left: 5px;
+                        box-sizing: border-box;
+                        min-width: unset;
+                        display: flex;
+                        flex-direction: column;
                     }
+
                     .ticket-details p {
                         display: flex;
                         align-items: baseline;
-                        justify-content: flex-start;
-                        flex-wrap: wrap;
+                        flex-wrap: nowrap; /* Keep label and value on one line for small content */
                     }
+
                     .ticket-details .label {
-                        display: inline-block;
-                        width: 70px;
-                        min-width: 70px;
+                        /* Increase min-width for labels to ensure they have enough space */
+                        min-width: 3.5em; /* Increased from 2.5em; adjust as needed for longest label */
                         text-align: left;
-                        margin-right: 5px; /* Reduced margin slightly if it's causing issues with wrapping */
-                        flex-shrink: 0;
+                        margin-right: 0.5em;
+                        flex-shrink: 0; /* Prevent the label from shrinking */
                     }
                     .ticket-details .value {
-                        display: inline-block;
-                        flex-grow: 1;
-                        word-wrap: break-word;
-                        overflow-wrap: break-word;
-                        hyphens: auto;
+                        flex-grow: 1; /* Allow the value to take up remaining space */
+                        word-wrap: break-word; /* Ensure long words break */
+                        overflow-wrap: break-word; /* Standard property for word wrapping */
+                        hyphens: auto; /* Allow hyphenation for better word breaking */
+                        min-width: 0; /* Allow the flex item to shrink below its content size */
                     }
                     </style>
                     <script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.5/dist/JsBarcode.all.min.js"></script>
@@ -293,7 +300,7 @@ const CreatePodTicket: React.FC<{
                         <div class="ticket-number">${ticketNumber}</div>
                         <div class="ticket-message">
                             <p>
-                            Paki-hintay po hanggang tawagin ang inyong ticket number. Salamat!
+                                Paki-hintay po hanggang tawagin ang inyong ticket number. Salamat!
                             </p>
                         </div>
 
@@ -316,9 +323,8 @@ const CreatePodTicket: React.FC<{
                         </div>
 
                         <div class="barcode-container">
-                            ${barcodeDataURL ? `<img src="${barcodeDataURL}" alt="Barcode ${ticketNumber}">` : '<p>Barcode not available</p>'}
+                            ${barcodeDataURL !== '' ? `<img src="${barcodeDataURL}" alt="Barcode ${ticketNumber}">` : '<p>Barcode not available</p>'}
                         </div>
-                        ${barcodeDataURL ? `<div class="barcode-label">${ticketNumber}</div>` : ''}
                     </div>
                 </body>
             </html>
@@ -344,20 +350,19 @@ const CreatePodTicket: React.FC<{
                 "id":1,
                 "functions":{
                     "func0":{"checkPrinterStatus":[]},
-                    "func1":{"printText":["Canvas Image Sample \\n\\n",0,0,false,false,false,0,0]},
+                    "func1":{"printText":["",0,0,false,false,false,0,0]},
                     "func2":{"printBitmap":["${canvasBase64}", 576, 1, false]},
-                    "func3":{"printText":["\\n\\n\\n\\n\\n",0,0,false,false,false,0,0]},
+                    "func3":{"printText":["\\n",0,0,false,false,false,0,0]},
                     "func4":{"cutPaper":[1]}
                 }
             }`;
 
             const response = await api.post('/WebPrintSDK/Printer1', requestBodyPrint);
 
-            if (response.status === 200) {
-                if (response.data && response.data.ResponseCode === 1000) {
+            if(response.status === 200) {
+                if(response.data.Result === 'ready') {
                     toast.success('Ticket sent to BIXOLON printer successfully!');
                 } else {
-                    console.log('res', response);
                     toast.error(`Print command sent, but SDK reported an issue: ${response.data.Result || 'Unknown issue'}`);
                 }
             } else {

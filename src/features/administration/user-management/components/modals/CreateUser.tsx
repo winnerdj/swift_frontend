@@ -220,7 +220,7 @@ const CreateUser: React.FC<CreateUserProps> = (props) => {
                             </CardContent>
                             <CardFooter className='flex justify-between'>
                                 <Button onClick={props.onClose} variant='destructive' type='button'>Close</Button>
-                                <Button type='submit' isLoading={createUserProps.isLoading}>Save</Button>
+                                <Button type='submit' isLoading={createUserProps.isLoading} disabled={createUserProps.isLoading}>Save</Button>
                             </CardFooter>
                         </Card>
                     </form>

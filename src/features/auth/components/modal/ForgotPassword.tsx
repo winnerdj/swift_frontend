@@ -81,7 +81,7 @@ const ForgotPassword: React.FC<ForgotPasswordProps> = ({ isOpen, onClose }) => {
                                     />
                                 </div>
                             </CardContent>
-                            <CardFooter className='flex justify-between'>
+                            <CardFooter className='flex justify-end'>
                                 <Button type='submit' isLoading={isLoading} disabled={isLoading}>Send Reset Password</Button>
                             </CardFooter>
                         </Card>

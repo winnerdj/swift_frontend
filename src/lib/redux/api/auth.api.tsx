@@ -26,7 +26,11 @@ type updatePasswordRequest = {
     new_password: string;
 }
 
-export const { useLoginMutation, useUpdatePasswordMutation } = apiSlice.injectEndpoints({
+type forgotPasswordRequest = {
+    user_email: string;
+}
+
+export const { useLoginMutation, useUpdatePasswordMutation, useForgotPasswordMutation } = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
         login: builder.mutation<LoginResponse, LoginRequest>({
             query: (credentials) => ({
@@ -38,6 +42,13 @@ export const { useLoginMutation, useUpdatePasswordMutation } = apiSlice.injectEn
         updatePassword: builder.mutation<any, updatePasswordRequest>({
             query: (args) => ({
                 url: '/auth/password_change',
+                method: 'POST',
+                body: args,
+            })
+        }),
+        forgotPassword: builder.mutation<any, forgotPasswordRequest>({
+            query: (args) => ({
+                url: '/auth/forgot_password',
                 method: 'POST',
                 body: args,
             })

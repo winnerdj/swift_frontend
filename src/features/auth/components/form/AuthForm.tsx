@@ -16,6 +16,8 @@ import { yupResolver } from "@hookform/resolvers/yup";
 import { useAppDispatch } from "@/hooks/redux.hooks";
 import { useLoginMutation } from "@/lib/redux/api/auth.api";
 import { setLogin } from "@/lib/redux/slices/auth.slice";
+import ForgotPassword from "../modal/ForgotPassword";
+import { Link } from "react-router-dom";
 
 const authSchema = yup.object({
     user_id: yup.string().required("Username is required"),
@@ -25,15 +27,19 @@ const authSchema = yup.object({
 type AuthSchemaType = yup.InferType<typeof authSchema>;
 
 const AuthForm: React.FC = () => {
-    const [login, { isLoading }] = useLoginMutation();
+    const [login, { isLoading : isLoginLoading }] = useLoginMutation();
     const dispatch = useAppDispatch();
+
+    const [state, setState] = React.useState({
+        isForgotPasswordOpen: false,
+    });
 
     const form = useForm<AuthSchemaType>({
         resolver: yupResolver(authSchema),
         defaultValues: {
             user_id: "",
             user_password: "",
-        },
+        }
     });
 
     const handleSubmit = async (values: AuthSchemaType) => {
@@ -61,53 +67,67 @@ const AuthForm: React.FC = () => {
         }
     };
 
+
     return (
-        <Form {...form}>
-            <form onSubmit={form.handleSubmit(handleSubmit)} className="flex flex-col gap-4">
-                <FormField
-                    control={form.control}
-                    name="user_id"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel className="text-gray-700">Username</FormLabel>
-                            <FormControl>
-                                <Input
-                                    className="bg-white border px-4 border-gray-300 text-gray-900 rounded-lg p-2 focus:ring-2 focus:ring-blue-500"
-                                    placeholder="Enter your username"
-                                    {...field}
-                                />
-                            </FormControl>
-                            <FormMessage className="text-red-500 text-sm" />
-                        </FormItem>
-                    )}
-                />
-                <FormField
-                    control={form.control}
-                    name="user_password"
-                    render={({ field }) => (
-                        <FormItem>
-                            <FormLabel className="text-gray-700">Password</FormLabel>
-                            <FormControl>
-                                <Input
-                                    type="password"
-                                    className="bg-white border border-gray-300 text-gray-900 rounded-lg p-2 focus:ring-2 focus:ring-blue-500"
-                                    placeholder="Enter your password"
-                                    {...field}
-                                />
-                            </FormControl>
-                            <FormMessage className="text-red-500 text-sm" />
-                        </FormItem>
-                    )}
-                />
-                <Button
-                    isLoading={isLoading}
-                    type="submit"
-                    className="bg-blue-500 hover:bg-blue-600 transition-all text-white font-medium py-2 rounded-lg"
-                >
-                    Sign In
-                </Button>
-            </form>
-        </Form>
+        <div>
+            <Form {...form}>
+                <form onSubmit={form.handleSubmit(handleSubmit)} className="flex flex-col gap-4">
+                    <FormField
+                        control={form.control}
+                        name="user_id"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel className="text-gray-700">Username</FormLabel>
+                                <FormControl>
+                                    <Input
+                                        className="bg-white border px-4 border-gray-300 text-gray-900 rounded-lg p-2 focus:ring-2 focus:ring-blue-500"
+                                        placeholder="Enter your username"
+                                        {...field}
+                                    />
+                                </FormControl>
+                                <FormMessage className="text-red-500 text-sm" />
+                            </FormItem>
+                        )}
+                    />
+                    <FormField
+                        control={form.control}
+                        name="user_password"
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel className="text-gray-700">Password</FormLabel>
+                                <FormControl>
+                                    <Input
+                                        type="password"
+                                        className="bg-white border border-gray-300 text-gray-900 rounded-lg p-2 focus:ring-2 focus:ring-blue-500"
+                                        placeholder="Enter your password"
+                                        {...field}
+                                    />
+                                </FormControl>
+                                <FormMessage className="text-red-500 text-sm" />
+                            </FormItem>
+                        )}
+                    />
+                    <Button isLoading={isLoginLoading}
+                            type="submit"
+                            className="bg-blue-500 hover:bg-blue-600 transition-all text-white font-medium py-2 rounded-lg"
+                        > Sign In
+                    </Button>
+                </form>
+            </Form>
+
+            <Link onClick={() => setState(prevState => ({ ...prevState, isForgotPasswordOpen: !prevState.isForgotPasswordOpen, }))}
+                    className="text-blue-500 text-xs hover:underline" to="#"
+                > Forgot Password?
+            </Link>
+
+            <ForgotPassword
+                onClose={() => setState(prevState => ({
+                    ...prevState,
+                    isForgotPasswordOpen: !prevState.isForgotPasswordOpen,
+                }))}
+                isOpen={state.isForgotPasswordOpen}
+            />
+        </div>
     );
 };
 

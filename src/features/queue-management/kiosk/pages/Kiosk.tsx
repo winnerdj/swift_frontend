@@ -93,7 +93,7 @@ const Kiosk: React.FC = () => {
 
     return (
         <div
-            className={`grid gap-3 pl-2 pr-2 ${isFullscreen ? 'h-screen' : ''}`}
+            className={`flex flex-col gap-3 pl-2 pr-2 ${isFullscreen ? 'h-screen' : ''}`}
             ref={kioskRef}
         >
             {/* HEADER */}
@@ -107,20 +107,22 @@ const Kiosk: React.FC = () => {
                     <Maximize className="h-4 w-4" />
                 </Button>
             </div>
+
+            {/* MAIN CONTENT */}
             <div
                 className={`rounded-xs bg-gray-50 shadow-2xs p-4 ${isFullscreen ? 'flex-grow' : ''}`}
             >
-                <div className="flex flex-col items-center justify-center min-h-full p-4">
+                <div className={`flex flex-col items-center justify-center p-4 ${isFullscreen ? 'h-full' : 'h-auto'}`}>
                     <div className="w-full max-w-8xl">
                         {isLoading ? (
-                            <div>
-                                <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold mb-8 text-gray-800 text-center">
-                                    Loading services...
+                            <div className="flex justify-center items-center">
+                                <h2 className="text-5xl md:text-7xl font-extrabold text-gray-800 text-center animate-pulse">
+                                    Loading Queue Information...
                                 </h2>
                             </div>
                         ) : (
                             <div>
-                                <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold mb-8 text-gray-800 text-center">
+                                <h2 className="text-5xl md:text-7xl font-bold mb-8 text-gray-800 text-center">
                                     Select a Service
                                 </h2>
                                 <div className={`flex flex-wrap justify-center gap-4 sm:gap-6 md:gap-8`}>

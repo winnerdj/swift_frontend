@@ -13,6 +13,7 @@ interface Ticket {
     service_name: string; // Crucial for grouping tickets by service
     ticket_counter?: string; // The counter calling the ticket (optional, as some might not have a counter yet)
     ticket_status: number; // More descriptive statuses or a generic string
+    ticket_level: number; // More descriptive statuses or a generic string
     ticket_create_datetime: string; // Timestamp when the ticket was created, useful for sorting waiting queue
     ticket_queue_datetime: string; // Timestamp when the ticket was created, useful for sorting waiting queue
     service_location: string;
@@ -50,7 +51,7 @@ const QueueDisplay: React.FC = () => {
             serviceLocation: userSessionDetails?.user_location || 'undefined',
         },
         {
-            pollingInterval: 1000, // poll every 10 seconds for real-time updates
+            pollingInterval: 3000, // Reduced polling to 3 seconds, still real-time enough
             skipPollingIfUnfocused: true
         }
     );
@@ -78,13 +79,14 @@ const QueueDisplay: React.FC = () => {
                     };
                 }
 
-                if(ticket.ticket_status > 10) { // Assuming '10' means waiting
+                // Check for tickets currently being served (status > 10, not completed/cancelled/no-show)
+                // Assuming '10' means waiting, and other statuses like 100 (Done), 90 (No Show), 60 (Cancelled)
+                if (ticket.ticket_status > 10 && ![100, 90, 60].includes(ticket.ticket_status)) {
                     // Ensure ticket_counter exists for calling tickets
-                    console.log("Processing ticket:", ticket);
-                    if(ticket.ticket_counter && ![100, 90, 60].includes(ticket.ticket_status)) {
+                    if (ticket.ticket_counter) {
                         grouped[ticket.service_id].currentlyCallingTicketsByCounter[ticket.ticket_counter] = ticket;
                     }
-                } else {
+                } else if (ticket.ticket_status <= 10) { // Assuming <= 10 means waiting or queued
                     grouped[ticket.service_id].waitingTickets.push(ticket);
                 }
             });
@@ -138,66 +140,72 @@ const QueueDisplay: React.FC = () => {
         };
     }, []);
 
+    // Calculate dynamic grid columns based on number of services
+    const gridColsClass = groupedQueueData.length > 0 ? `grid-cols-${groupedQueueData.length > 3 ? 3 : groupedQueueData.length}` : 'grid-cols-1';
+    // Max number of waiting tickets to display per service before showing "+X more"
+    const maxWaitingTickets = 15; // Adjusted for 14-inch, 1080p for better readability.
+
     return (
         <div
-            className={`flex flex-col gap-3 pl-2 pr-2 ${isFullscreen ? 'h-screen' : ''}`}
+            className={`flex flex-col h-screen overflow-hidden ${isFullscreen ? '' : 'p-2'}`} // Remove padding in fullscreen, add it if not
             ref={kioskRef}
+            style={{ backgroundColor: '#f0f4f8' }} // Light background for better contrast
         >
-            {/* Header with Fullscreen Button */}
-            <div className='flex w-full items-center justify-end rounded-xs p-3 h-12 gap-x-4 bg-gray-50 shadow-2xs'>
-                <Button
-                    variant="ghost"
-                    className="p-2 h-7 hover:bg-gray-400"
-                    onClick={toggleFullscreen}
-                    title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
-                >
-                    <Maximize className="h-4 w-4" />
-                </Button>
-            </div>
+            {/* Header with Fullscreen Button - only visible when not in fullscreen */}
+            {!isFullscreen && (
+                <div className='flex w-full items-center justify-end rounded-md p-3 h-12 gap-x-4 bg-white shadow-md mb-3'>
+                    <Button
+                        variant="ghost"
+                        className="p-2 h-7 hover:bg-gray-200"
+                        onClick={toggleFullscreen}
+                        title={isFullscreen ? "Exit Fullscreen" : "Enter Fullscreen"}
+                    >
+                        <Maximize className="h-4 w-4" />
+                    </Button>
+                </div>
+            )}
 
-            {/* Main Display Area - This now needs to flex-grow to fill the remaining space */}
-            <div className={`rounded-xs bg-gray-50 shadow-2xs p-4 flex flex-col flex-grow`}>
-                {/* This flex-grow div will contain the service grid and expand to fill available space */}
-                <div className="flex flex-col items-center justify-center flex-grow p-4 max-h-[calc(100%-140px)]">
-                    {/* This div should also flex-grow to ensure its grid content fills the height */}
+            {/* Main Display Area - This will now handle its internal flex distribution */}
+            <div className={`flex flex-col flex-grow ${isFullscreen ? '' : 'rounded-md shadow-lg'} bg-white`}>
+                <div className="flex flex-col flex-grow p-6"> {/* Increased padding, flex-grow allows it to take available space */}
                     <div className="w-full max-w-8xl h-full flex flex-col flex-grow">
                         {isLoading ? (
-                            <div className="flex justify-center items-center h-full p-5">
-                                <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold text-gray-800 text-center">
-                                    Loading tickets...
+                            <div className="flex justify-center items-center h-full">
+                                <h2 className="text-5xl md:text-7xl font-extrabold text-gray-800 text-center animate-pulse">
+                                    Loading Queue Information...
                                 </h2>
                             </div>
                         ) : groupedQueueData.length === 0 ? (
-                            <div className="flex justify-center items-center h-full p-5">
-                                <h2 className="text-3xl sm:text-5xl md:text-6xl font-bold text-gray-800 text-center">
-                                    No active tickets in queue.
+                            <div className="flex justify-center items-center h-full">
+                                <h2 className="text-5xl md:text-7xl font-extrabold text-gray-800 text-center">
+                                    No active tickets in queue. <br/> Please take a ticket.
                                 </h2>
                             </div>
                         ) : (
-                            // Dynamic grid for each service type - ensure this grid grows to fill space
-                            <div className={`grid grid-cols-1 gap-6 auto-rows-fr h-full grid-cols-${groupedQueueData.length}`}>
+                            // Dynamic grid for each service type
+                            <div className={`grid ${gridColsClass} gap-8 auto-rows-fr h-full`}> {/* Increased gap */}
                                 {groupedQueueData.map(service => (
                                     <div
                                         key={service.service_id}
-                                        className="bg-white rounded-lg shadow-md p-6 flex flex-col border border-gray-200 h-full transition-all duration-300 hover:shadow-lg"
+                                        className="bg-gradient-to-br from-indigo-50 to-white rounded-xl shadow-xl p-8 flex flex-col border border-indigo-100 h-full transform transition-transform duration-500 hover:scale-[1.01]" // Enhanced styling
                                     >
-                                        <h3 className="text-7xl font-bold text-gray-800 mb-4 pb-2 border-b-2 border-indigo-500 text-center">
+                                        <h3 className="text-7xl font-extrabold text-indigo-800 mb-6 pb-4 border-b-4 border-indigo-400 text-center drop-shadow-sm">
                                             {service.service_name}
                                         </h3>
 
-                                        {/* "Now Serving" Section - now dynamic for multiple counters in a table */}
-                                        <div className="mb-6 text-center">
-                                            {/* <p className="text-sm text-gray-600 font-medium uppercase tracking-wider mb-2">Now Serving</p> */}
+                                        {/* "Now Serving" Section */}
+                                        <div className="mb-8 text-center flex-shrink-0"> {/* Use flex-shrink-0 to prevent this from shrinking */}
+                                            <p className="text-3xl text-gray-700 font-semibold uppercase tracking-wider mb-4">Now Serving:</p>
                                             {Object.keys(service.currentlyCallingTicketsByCounter).length > 0 ? (
                                                 <div className="overflow-x-auto">
                                                     <table className="min-w-full divide-y divide-gray-200">
-                                                        <thead className="bg-gray-50">
+                                                        <thead className="bg-indigo-100">
                                                             <tr>
-                                                                <th scope="col" className="px-6 py-3 text-left text-lg font-bold text-gray-500 uppercase tracking-wider">
+                                                                <th scope="col" className="px-6 py-3 text-left text-2xl font-bold text-indigo-700 uppercase">
                                                                     Counter
                                                                 </th>
-                                                                <th scope="col" className="px-6 py-3 text-center text-lg font-bold text-gray-500 uppercase tracking-wider">
-                                                                    Now Serving
+                                                                <th scope="col" className="px-6 py-3 text-center text-2xl font-bold text-indigo-700 uppercase">
+                                                                    Ticket No.
                                                                 </th>
                                                             </tr>
                                                         </thead>
@@ -205,11 +213,13 @@ const QueueDisplay: React.FC = () => {
                                                             {Object.entries(service.currentlyCallingTicketsByCounter)
                                                                 .sort(([counterA], [counterB]) => counterA.localeCompare(counterB))
                                                                 .map(([counterName, ticket]) => (
-                                                                    <tr key={counterName}>
-                                                                        <td className="px-6 py-4 whitespace-nowrap text-3xl font-bold text-gray-700">
+                                                                    <tr key={counterName} className="hover:bg-gray-50 transition-colors duration-200">
+                                                                        <td className="px-6 py-4 whitespace-nowrap text-5xl font-extrabold text-gray-900 animate-pulse-slow">
                                                                             {counterName}
                                                                         </td>
-                                                                        <td className="px-6 py-4 whitespace-nowrap text-5xl font-extrabold text-indigo-700 tracking-wider animate-bounce-slow">
+                                                                        <td className={`px-6 py-4 whitespace-nowrap text-7xl font-extrabold text-green-600 tracking-wider`
+                                                                            + (ticket.ticket_status === 50 ? ' text-3xl text-red-600 animate-pulse' : '') // Highlight assigned tickets
+                                                                        }>
                                                                             {ticket.ticket_name}
                                                                         </td>
                                                                     </tr>
@@ -218,38 +228,43 @@ const QueueDisplay: React.FC = () => {
                                                     </table>
                                                 </div>
                                             ) : (
-                                                <p className="text-xl text-gray-500 mt-2">No one is currently being served</p>
+                                                <p className="text-4xl text-gray-500 mt-4 font-medium">No one is currently being served</p>
                                             )}
                                         </div>
 
                                         {/* Total in Queue Section */}
-                                        <div className="mb-4 text-left flex flex-row items-center gap-x-2">
-                                            <p className="text-sm text-gray-600 font-bold uppercase tracking-wider">Total in Queue:</p>
-                                            <p className="text-2xl font-bold text-gray-800">
+                                        <div className="mb-8 text-left flex items-center justify-between py-2 border-t-2 border-b-2 border-gray-200 flex-shrink-0"> {/* Use flex-shrink-0 */}
+                                            <p className="text-3xl text-gray-700 font-bold uppercase tracking-wider">Total Waiting:</p>
+                                            <p className="text-6xl font-extrabold text-gray-900">
                                                 {service.waitingTickets.length}
                                             </p>
                                         </div>
 
                                         {/* "Next in Queue" Section (remains service-wide) */}
-                                        <div className="overflow-y-auto max-h-[calc(85%-100px)] no-scrollbar">
-                                                {service.waitingTickets.length > 0 ? (
-                                                <div className="grid grid-cols-3 gap-3">
-                                                    {service.waitingTickets.slice(0, 27).map(ticket => (
+                                        {/* This is the key change: max-h-full, overflow-y-auto, and flex-grow */}
+                                        <div className="flex-grow overflow-y-auto custom-scrollbar pr-2">
+                                            {service.waitingTickets.length > 0 ? (
+                                                <div className="grid grid-cols-3 gap-4"> {/* Changed to 2 columns for better readability on 14-inch */}
+                                                    {service.waitingTickets.slice(0, maxWaitingTickets).map(ticket => (
                                                         <div
                                                             key={ticket.ticket_id}
-                                                            className="bg-gray-100 rounded-md p-2 text-center text-3xl font-bold text-gray-700 shadow-sm hover:bg-gray-200 transition-colors"
+                                                            className={`bg-indigo-50 rounded-lg p-3 text-center text-4xl font-bold text-indigo-700 shadow-sm transition-transform duration-200 hover:scale-105`
+                                                            + (ticket.ticket_level === 2 ? ' text-violet-600' : '') // Highlight level 1 tickets
+                                                            + (ticket.ticket_level === 3 ? ' text-orange-400' : '') // Highlight level 2 tickets
+                                                            + (ticket.ticket_level === 4 ? ' text-red-600' : '') // Highlight level 3 tickets
+                                                            }
                                                         >
                                                             {ticket.ticket_name}
                                                         </div>
                                                     ))}
-                                                    {service.waitingTickets.length > 27 && (
-                                                        <div className="col-span-full text-center text-gray-500 text-base mt-2">
-                                                            ( +{service.waitingTickets.length - 27} more waiting)
+                                                    {service.waitingTickets.length > maxWaitingTickets && (
+                                                        <div className="col-span-full text-center text-gray-600 text-3xl font-semibold mt-4">
+                                                            ( +{service.waitingTickets.length - maxWaitingTickets} more waiting )
                                                         </div>
                                                     )}
                                                 </div>
                                             ) : (
-                                                <p className="text-center text-gray-500 text-base mt-2">No tickets waiting</p>
+                                                <p className="text-center text-gray-500 text-3xl font-medium mt-4">No tickets currently waiting</p>
                                             )}
                                         </div>
                                     </div>
@@ -258,14 +273,13 @@ const QueueDisplay: React.FC = () => {
                         )}
                     </div>
                 </div>
-                {/* Footer Note Section */
-                isLoading ? groupedQueueData.length > 0 :
-                <div className="m-4 p-4 border-t tracking-wider border-gray-200 text-center">
-                    <p className="text-5xl text-gray-800 font-bold">
+
+                {/* Footer Note Section - This section will now stay at the bottom due to flexbox */}
+                <div className="mt-auto p-6 border-t-4 border-indigo-200 text-center bg-indigo-700 text-white flex-shrink-0"> {/* flex-shrink-0 keeps it from shrinking */}
+                    <p className="text-6xl text-white font-extrabold tracking-tight">
                         Pumunta po sa counter kapag tinawag ang inyong ticket.
                     </p>
                 </div>
-                }
             </div>
         </div>
     );

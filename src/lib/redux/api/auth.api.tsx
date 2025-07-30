@@ -20,7 +20,13 @@ interface LoginResponse {
     }
 }
 
-export const { useLoginMutation } = apiSlice.injectEndpoints({
+type updatePasswordRequest = {
+    user_id: string | undefined;
+    current_password: string;
+    new_password: string;
+}
+
+export const { useLoginMutation, useUpdatePasswordMutation } = apiSlice.injectEndpoints({
     endpoints: (builder) => ({
         login: builder.mutation<LoginResponse, LoginRequest>({
             query: (credentials) => ({
@@ -29,5 +35,12 @@ export const { useLoginMutation } = apiSlice.injectEndpoints({
                 body: credentials,
             }),
         }),
+        updatePassword: builder.mutation<any, updatePasswordRequest>({
+            query: (args) => ({
+                url: '/auth/password_change',
+                method: 'POST',
+                body: args,
+            })
+        })
     }),
 });

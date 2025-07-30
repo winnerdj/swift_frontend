@@ -33,7 +33,7 @@ type updateUser = {
 export const { useCreateUserMutation, useUpdateUserMutation } = apiSlice.injectEndpoints({
     endpoints: builder => ({
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        createUser: builder.mutation<any,createUser>({
+        createUser: builder.mutation<any, createUser>({
             query: (args) => ({
                 url: '/user',
                 method: 'POST',

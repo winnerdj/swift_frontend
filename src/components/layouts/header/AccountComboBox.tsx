@@ -11,6 +11,7 @@ import { useAppSelector } from '@/hooks/redux.hooks';
 import { getSession } from '@/lib/redux/slices/auth.slice';
 import { useAppDispatch } from '@/hooks/redux.hooks';
 import { setLogOut } from '@/lib/redux/slices/auth.slice';
+import UpdatePassword from '@/features/auth/components/modal/UpdatePassword';
 
 interface AccountComboBoxProps {
 
@@ -19,8 +20,13 @@ interface AccountComboBoxProps {
 const AccountComboBox: React.FC<AccountComboBoxProps> = () => {
     const { user_id } = useAppSelector(getSession);
 
+	const [changePasswordDialog, setChangePasswordDialog] = React.useState(false);
     const dispatch = useAppDispatch();
     const handleSignOut = () => { dispatch(setLogOut()) }
+
+	const toggleChangePassword = () => {
+		setChangePasswordDialog(!changePasswordDialog);
+	}
 
     return (
         <Popover>
@@ -34,10 +40,11 @@ const AccountComboBox: React.FC<AccountComboBoxProps> = () => {
             <PopoverContent className="w-50 bg-white border-none">
                 <PopoverPrimitive.Arrow className="fill-white stroke-border h-2 w-4" />
                 <div className="grid ">
-                    <Button variant={'outline'} className='border-none hover:bg-[#CD3E3A] hover:text-white '>Update Password</Button>
+                    <Button variant={'outline'} onClick={toggleChangePassword} className='border-none hover:bg-[#CD3E3A] hover:text-white '>Update Password</Button>
                     <Button variant={'outline'} onClick={handleSignOut} className='border-none hover:bg-[#CD3E3A] hover:text-white'>Sign Out</Button>
                 </div>
             </PopoverContent>
+            <UpdatePassword isOpen={changePasswordDialog} onClose={toggleChangePassword} />
         </Popover>
     );
 }

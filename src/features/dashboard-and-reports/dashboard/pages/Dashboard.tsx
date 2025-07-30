@@ -180,7 +180,7 @@ const Dashboard: React.FC = () => {
                 const nowServingTime = parseDateTime(ticket.ticket_now_serving_datetime);
                 const servedTime = parseDateTime(ticket.ticket_served_datetime);
 
-                if (nowServingTime && servedTime) {
+                if(nowServingTime && servedTime) {
                     const serviceDuration = servedTime.getTime() - nowServingTime.getTime();
                     if (serviceDuration >= 0) {
                         processorsMap[processorId].serviceDurations.push(serviceDuration);
@@ -188,7 +188,7 @@ const Dashboard: React.FC = () => {
                 }
 
                 const createTime = parseDateTime(ticket.ticket_create_datetime);
-                if (createTime && nowServingTime) {
+                if(createTime && nowServingTime) {
                     const waitingDuration = nowServingTime.getTime() - createTime.getTime();
                     if (waitingDuration >= 0) {
                         processorsMap[processorId].waitingDurations.push(waitingDuration);

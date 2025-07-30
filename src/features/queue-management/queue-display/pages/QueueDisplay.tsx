@@ -14,6 +14,7 @@ interface Ticket {
     ticket_counter?: string; // The counter calling the ticket (optional, as some might not have a counter yet)
     ticket_status: number; // More descriptive statuses or a generic string
     ticket_create_datetime: string; // Timestamp when the ticket was created, useful for sorting waiting queue
+    ticket_queue_datetime: string; // Timestamp when the ticket was created, useful for sorting waiting queue
     service_location: string;
     service_description: string;
     service_discipline: string;
@@ -48,9 +49,10 @@ const QueueDisplay: React.FC = () => {
         {
             serviceLocation: userSessionDetails?.user_location || 'undefined',
         },
-        // {
-        //     pollingInterval: 60000 // Poll every 60 seconds for real-time updates
-        // }
+        {
+            pollingInterval: 1000, // poll every 10 seconds for real-time updates
+            skipPollingIfUnfocused: true
+        }
     );
 
     // Effect to process fetched tickets and group them by service and counter
@@ -71,18 +73,15 @@ const QueueDisplay: React.FC = () => {
                         no_of_counters: ticket.no_of_counters,
                         service_id: ticket.service_id,
                         service_name: ticket.service_name,
-                        currentlyCallingTicketsByCounter: {}, // Initialize the map for counters
+                        currentlyCallingTicketsByCounter: {},
                         waitingTickets: []
                     };
                 }
 
-                // Assign tickets to 'calling' or 'waiting' lists
                 if(ticket.ticket_status > 10) { // Assuming '10' means waiting
                     // Ensure ticket_counter exists for calling tickets
                     console.log("Processing ticket:", ticket);
-                    if(ticket.ticket_counter) {
-                        // In case multiple calling tickets for the same counter exist (shouldn't happen in a real system)
-                        // This will pick the latest one based on array order. For robustness, you might want to sort by ticket_create_datetime.
+                    if(ticket.ticket_counter && ![100, 90, 60].includes(ticket.ticket_status)) {
                         grouped[ticket.service_id].currentlyCallingTicketsByCounter[ticket.ticket_counter] = ticket;
                     }
                 } else {
@@ -93,7 +92,7 @@ const QueueDisplay: React.FC = () => {
             // Sort waiting tickets for each service by creation time
             Object.values(grouped).forEach(service => {
                 service.waitingTickets.sort((a, b) =>
-                    new Date(a.ticket_create_datetime).getTime() - new Date(b.ticket_create_datetime).getTime()
+                    new Date(a.ticket_queue_datetime).getTime() - new Date(b.ticket_queue_datetime).getTime()
                 );
             });
 
@@ -140,8 +139,6 @@ const QueueDisplay: React.FC = () => {
     }, []);
 
     return (
-        // The main container that will go fullscreen.
-        // We set it to flex column and flex-grow to make its content fill it.
         <div
             className={`flex flex-col gap-3 pl-2 pr-2 ${isFullscreen ? 'h-screen' : ''}`}
             ref={kioskRef}

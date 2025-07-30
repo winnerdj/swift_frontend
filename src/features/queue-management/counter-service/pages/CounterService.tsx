@@ -36,6 +36,7 @@ interface Ticket {
     service_location: string;
     ticket_status: number;
     ticket_create_datetime: string;
+    ticket_queue_datetime: string;
     ticket_counter?: number;
     ticket_now_serving_datetime?: string;
     qc_service_location_desc: string;
@@ -76,16 +77,18 @@ const CounterService: React.FC = () => {
     const { data: activeAssignedTicketData = { data : {} }, isLoading: isLoadingActiveAssignedTicketData  } = useGetActiveAssignedTicketQuery(
         { user_id: workSessionDetails?.user_id ?? '' },
         {
-            pollingInterval: 10000, // Poll every 10 seconds
             skip: !workSessionDetails?.user_id, // Skip if user_name is not set
+            pollingInterval: 10000, // Poll every 10 seconds
+            skipPollingIfUnfocused: true
         }
     );
 
     const { data: ticketsResponse = { data: [] }, isLoading, } = useGetTicketsTodayByServiceIdQuery(
         { service_id : workSessionDetails?.service_id || 'undefined' },
         {
-            pollingInterval: 30000,  // Poll every 30 seconds
             skip: !workSessionDetails?.service_id, // Skip if service_id is not set
+            pollingInterval: 30000,  // Poll every 30 seconds
+            skipPollingIfUnfocused: true
         }
     );
 
@@ -302,12 +305,6 @@ const CounterService: React.FC = () => {
             console.error('Failed to transfer ticket:', err);
         }
     };
-
-    // const handlePrintTicket = async() => {
-    //     console.log("🚀 ~ CounterService.tsx: ~ clicked handlePrintTicket.");
-
-    //     console.log(transferredNewTicketNumber)
-    // };
 
     const handlePrintTicket = async() => {
         if(!transferredNewTicketNumber) {

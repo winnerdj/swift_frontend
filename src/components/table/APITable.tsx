@@ -24,10 +24,9 @@ function APITable<TData, TValue>({ columns, route,
     /* Convert sorting array to API-friendly format */
     const order = sorting.map(({ id, desc }) => `${id},${desc ? 'desc' : 'asc'}`).join(';');
 
-    /* Debounce search function */
-    const debouncedSetSearch = useCallback(debounce(setSearchTerm, 1000), []);
+    // Debounce search function
+    const debouncedSetSearch = useCallback(debounce((query: string) => setSearchTerm(query), 1000), []);
 
-    /* Fetch data with pagination, sorting, and filters */
     const { data = {}, isFetching, isLoading, isSuccess, refetch } = useGetDataQuery(
         {
             route,
@@ -47,7 +46,7 @@ function APITable<TData, TValue>({ columns, route,
     const handleSortingChange = useCallback((updater: SortingState | ((old: SortingState) => SortingState)) => {
         setSorting(updater);
         setRowSelection({})
-    }, []);
+    }, [setRowSelection])
 
     /* Handle search updates from DataTable */
     const handleSearchChange = (query: string) => {
@@ -55,15 +54,18 @@ function APITable<TData, TValue>({ columns, route,
     };
 
     useEffect(() => {
-        if(props.onSelectedRowsChange) {
-            const selectedRowIndexes = Object.keys(rowSelection).map((key) => parseInt(key)); // Get selected indexes
-            const selectedRows = selectedRowIndexes
-                .map((index) => data.rows?.[index]) // Get rows from data
-                .filter((row) => row !== undefined); // Remove undefined rows
+        if (props.onSelectedRowsChange) {
+            // Only proceed if data.rows is available and not fetching/loading
+            if (data.rows && !isFetching && !isLoading) {
+                const selectedRowIndexes = Object.keys(rowSelection).map((key) => parseInt(key));
+                const selectedRows = selectedRowIndexes
+                    .map((index) => data.rows?.[index])
+                    .filter((row) => row !== undefined);
 
-            props.onSelectedRowsChange(selectedRows);
+                props.onSelectedRowsChange(selectedRows);
+            }
         }
-    }, [rowSelection, data]);
+    }, [rowSelection, data, isFetching, isLoading, props.onSelectedRowsChange]);
 
     return (
         <DataTable
@@ -73,7 +75,7 @@ function APITable<TData, TValue>({ columns, route,
             pageCount={data.pageCount}
             count={data.count}
             manualPagination
-            isLoading={isFetching}
+            isLoading={isFetching || isLoading} // Use both for loading state
             state={{
                 pagination,
                 sorting,

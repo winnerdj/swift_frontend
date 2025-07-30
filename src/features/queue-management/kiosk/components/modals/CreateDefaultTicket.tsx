@@ -270,10 +270,6 @@ const CreateDefaultTicket: React.FC<{
                 ticket_level: 1,
             }).unwrap();
 
-                console.log("🚀 -----------------------------------------------------------------------------------------🚀");
-                console.log("🚀 ~ CreateDefaultTicket.tsx:273 ~ handleCreateTicket ~ selectedService:", selectedService);
-                console.log("🚀 -----------------------------------------------------------------------------------------🚀");
-
             let createdTicket = {
                 selectedService: selectedService,
                 response: null

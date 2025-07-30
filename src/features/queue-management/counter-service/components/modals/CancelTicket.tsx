@@ -26,11 +26,6 @@ const cancelTicketSchema = yup.object({
 type CancelTicketType = yup.InferType<typeof cancelTicketSchema>;
 
 const CancelTicket: React.FC<CancelTicketProps> = ({ isOpen, onClose, activeTicket }) => {
-
-    console.log("🚀 ------------------------------------------------------🚀");
-    console.log("🚀 ~ CancelTicket.tsx:30 ~ activeTicket:", activeTicket);
-    console.log("🚀 ------------------------------------------------------🚀");
-
     const [cancelTicket, cancelTicketProps] = useCancelTicketMutation();
     const [reasonCode, setReasonCode] = React.useState<{label: string; value:string} | null> (null)
 

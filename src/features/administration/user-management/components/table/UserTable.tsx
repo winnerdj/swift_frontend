@@ -85,7 +85,7 @@ const UserTable: React.FC<UserTableProps> = ({
         {
             accessorKey: 'user_status',
             header: 'Status',
-            cell: props => props.getValue() === 1 ? 'Active' : 'Inactive'
+            cell: props => props.getValue() ? 'Active' : 'Inactive'
         },
         {
             accessorKey: 'user_email',

@@ -56,7 +56,8 @@ interface ProcessorStats {
     maxService: string;
     totalService: string;
     clientWaitingTime: string; // Renamed from waitingTime to clientWaitingTime
-    agentWaitingTime: string; // New field for agent waiting time
+    agentWaitingTime: string; // New field for agent waiting time (Average)
+    totalAgentWaitingTime: string; // New field for total agent waiting time
     idleTime: string; // Placeholder, as not available in ticket data
     breakTime: string; // Placeholder, as not available in ticket data
     queueDepartureTime: string; // Placeholder, as not available in ticket data
@@ -241,6 +242,7 @@ const Dashboard: React.FC = () => {
                     totalService: formatDuration(totalServiceMs),
                     clientWaitingTime: formatDuration(aveClientWaitingMs),
                     agentWaitingTime: formatDuration(aveAgentWaitingMs),
+                    totalAgentWaitingTime: formatDuration(totalAgentWaitingMs), // Add this line
                     idleTime: "0m",
                     breakTime: "0m",
                     queueDepartureTime: "0m",
@@ -415,15 +417,15 @@ const Dashboard: React.FC = () => {
                             <tr className="bg-gray-200 text-gray-700 border-gray-300 text-left text-sm font-semibold uppercase tracking-wider">
                                 <th rowSpan={2} className="px-3 py-2 border-r border-gray-300 text-center rounded-tl-md">Processor</th>
                                 <th rowSpan={2} className="px-3 py-2 border-r border-gray-300 text-center">Total Tickets Processed</th>
-                                <th colSpan={2} className="px-3 py-2 border-b border-r border-gray-300 text-center">Waiting Time</th> {/* Updated colSpan */}
+                                <th colSpan={2} className="px-3 py-2 border-b border-r border-gray-300 text-center">Waiting Time</th> {/* Updated colSpan to 2 */}
                                 <th colSpan={4} className="px-3 py-2 border-b border-r border-gray-300 text-center">Service Time</th>
                                 <th rowSpan={2} className="px-3 py-2 border-r border-gray-300 text-center">Idle Time</th>
                                 <th rowSpan={2} className="px-3 py-2 border-r border-gray-300 text-center">Break Time</th>
                                 <th rowSpan={2} className="px-3 py-2 text-center rounded-tr-md">Queue Departure Time</th>
                             </tr>
                             <tr className="bg-gray-200 text-gray-700 text-left text-xs font-semibold uppercase tracking-wider">
-                                <th className="px-3 py-2 border-r border-gray-300 text-center">Client Ave</th> {/* New header */}
                                 <th className="px-3 py-2 border-r border-gray-300 text-center">Agent Ave</th> {/* New header */}
+                                <th className="px-3 py-2 border-r border-gray-300 text-center">Agent Total</th> {/* Added new header for Total Agent Waiting Time */}
                                 <th className="px-3 py-2 border-r border-gray-300 text-center">Ave</th>
                                 <th className="px-3 py-2 border-r border-gray-300 text-center">Min</th>
                                 <th className="px-3 py-2 border-r border-gray-300 text-center">Max</th>
@@ -436,8 +438,8 @@ const Dashboard: React.FC = () => {
                                 <tr key={index} className={index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
                                     <td className="px-3 py-2 whitespace-nowrap text-center font-medium">{processor.name}</td>
                                     <td className="px-3 py-2 whitespace-nowrap text-center">{processor.totalTickets}</td>
-                                    <td className="px-3 py-2 whitespace-nowrap text-center">{processor.clientWaitingTime}</td> {/* Client Waiting Time */}
-                                    <td className="px-3 py-2 whitespace-nowrap text-center">{processor.agentWaitingTime}</td> {/* Agent Waiting Time */}
+                                    <td className="px-3 py-2 whitespace-nowrap text-center">{processor.agentWaitingTime}</td> {/* Agent Waiting Time (Average) */}
+                                    <td className="px-3 py-2 whitespace-nowrap text-center">{processor.totalAgentWaitingTime}</td> {/* Agent Waiting Time (Total) */}
                                     <td className="px-3 py-2 whitespace-nowrap text-center">{processor.aveService}</td>
                                     <td className="px-3 py-2 whitespace-nowrap text-center">{processor.minService}</td>
                                     <td className="px-3 py-2 whitespace-nowrap text-center">{processor.maxService}</td>

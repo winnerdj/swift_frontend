@@ -87,7 +87,7 @@ const CounterService: React.FC = () => {
         { service_id : workSessionDetails?.service_id || 'undefined' },
         {
             skip: !workSessionDetails?.service_id, // Skip if service_id is not set
-            pollingInterval: 30000,  // Poll every 30 seconds
+            pollingInterval: 10000,  // Poll every 30 seconds
             skipPollingIfUnfocused: true
         }
     );

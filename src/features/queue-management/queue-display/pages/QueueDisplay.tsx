@@ -51,7 +51,7 @@ const QueueDisplay: React.FC = () => {
             serviceLocation: userSessionDetails?.user_location || 'undefined',
         },
         {
-            pollingInterval: 3000, // Reduced polling to 3 seconds, still real-time enough
+            pollingInterval: 5000, // Reduced polling to 3 seconds, still real-time enough
             skipPollingIfUnfocused: true
         }
     );

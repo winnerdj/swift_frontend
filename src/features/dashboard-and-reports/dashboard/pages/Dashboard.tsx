@@ -55,7 +55,8 @@ interface ProcessorStats {
     minService: string;
     maxService: string;
     totalService: string;
-    waitingTime: string;
+    clientWaitingTime: string; // Renamed from waitingTime to clientWaitingTime
+    agentWaitingTime: string; // New field for agent waiting time
     idleTime: string; // Placeholder, as not available in ticket data
     breakTime: string; // Placeholder, as not available in ticket data
     queueDepartureTime: string; // Placeholder, as not available in ticket data
@@ -81,7 +82,7 @@ const parseDateTime = (datetimeString: string | null): Date | null => {
  * (e.g., "1h 30m 5s", "8m 23s", "0s").
  * @param milliseconds The duration in milliseconds.
  * @returns A formatted string representing the duration, or "N/A" if invalid.
- */
+*/
 const formatDuration = (milliseconds: number | null): string => {
     if (milliseconds === null || isNaN(milliseconds) || milliseconds < 0) {
         return "N/A";
@@ -126,7 +127,7 @@ const Dashboard: React.FC = () => {
         {
             skip: !service_id,
             refetchOnMountOrArgChange: true,
-            pollingInterval: 30000,
+            pollingInterval: 5000,
             skipPollingIfUnfocused: true
         }
     );
@@ -139,7 +140,7 @@ const Dashboard: React.FC = () => {
         {
             skip: !service_id,
             refetchOnMountOrArgChange: true,
-            pollingInterval: 30000,
+            pollingInterval: 5000,
             skipPollingIfUnfocused: true
         }
     );
@@ -159,7 +160,8 @@ const Dashboard: React.FC = () => {
                 [key: string]: {
                     totalTickets: number;
                     serviceDurations: number[]; // Stores durations in milliseconds
-                    waitingDurations: number[]; // Stores durations in milliseconds
+                    clientWaitingDurations: number[]; // Stores durations in milliseconds for client
+                    agentWaitingDurations: number[]; // Stores durations in milliseconds for agent
                 };
             } = {};
 
@@ -171,7 +173,8 @@ const Dashboard: React.FC = () => {
                     processorsMap[processorId] = {
                         totalTickets: 0,
                         serviceDurations: [],
-                        waitingDurations: [],
+                        clientWaitingDurations: [],
+                        agentWaitingDurations: [],
                     };
                 }
 
@@ -180,6 +183,7 @@ const Dashboard: React.FC = () => {
                 const nowServingTime = parseDateTime(ticket.ticket_now_serving_datetime);
                 const servedTime = parseDateTime(ticket.ticket_served_datetime);
 
+                // Calculate Service Time
                 if(nowServingTime && servedTime) {
                     const serviceDuration = servedTime.getTime() - nowServingTime.getTime();
                     if (serviceDuration >= 0) {
@@ -188,10 +192,28 @@ const Dashboard: React.FC = () => {
                 }
 
                 const createTime = parseDateTime(ticket.ticket_create_datetime);
-                if(createTime && nowServingTime) {
-                    const waitingDuration = nowServingTime.getTime() - createTime.getTime();
-                    if (waitingDuration >= 0) {
-                        processorsMap[processorId].waitingDurations.push(waitingDuration);
+                const assignedTime = parseDateTime(ticket.ticket_assigned_datetime);
+
+                // Calculate Client Waiting Time (ticket_create_datetime to ticket_assigned_datetime)
+                if(createTime && assignedTime) {
+                    const clientWaitingTime = assignedTime.getTime() - createTime.getTime();
+                    if (clientWaitingTime >= 0) {
+                        processorsMap[processorId].clientWaitingDurations.push(clientWaitingTime);
+                    }
+                }
+
+                // Calculate Agent Waiting Time (ticket_assigned_datetime to first occurrence of serving/no-show/cancelled)
+                if(assignedTime) {
+                    const firstActionTime =
+                        parseDateTime(ticket.ticket_now_serving_datetime) ||
+                        parseDateTime(ticket.ticket_no_show_datetime) ||
+                        parseDateTime(ticket.ticket_cancelled_datetime);
+
+                    if (firstActionTime) {
+                        const agentWaitingTime = firstActionTime.getTime() - assignedTime.getTime();
+                        if (agentWaitingTime >= 0) {
+                            processorsMap[processorId].agentWaitingDurations.push(agentWaitingTime);
+                        }
                     }
                 }
             });
@@ -204,8 +226,11 @@ const Dashboard: React.FC = () => {
                 const minServiceMs = stats.serviceDurations.length > 0 ? Math.min(...stats.serviceDurations) : 0;
                 const maxServiceMs = stats.serviceDurations.length > 0 ? Math.max(...stats.serviceDurations) : 0;
 
-                const totalWaitingMs = stats.waitingDurations.reduce((sum, d) => sum + d, 0);
-                const aveWaitingMs = stats.waitingDurations.length > 0 ? totalWaitingMs / stats.waitingDurations.length : 0;
+                const totalClientWaitingMs = stats.clientWaitingDurations.reduce((sum, d) => sum + d, 0);
+                const aveClientWaitingMs = stats.clientWaitingDurations.length > 0 ? totalClientWaitingMs / stats.clientWaitingDurations.length : 0;
+
+                const totalAgentWaitingMs = stats.agentWaitingDurations.reduce((sum, d) => sum + d, 0);
+                const aveAgentWaitingMs = stats.agentWaitingDurations.length > 0 ? totalAgentWaitingMs / stats.agentWaitingDurations.length : 0;
 
                 return {
                     name: processorId,
@@ -214,7 +239,8 @@ const Dashboard: React.FC = () => {
                     minService: formatDuration(minServiceMs),
                     maxService: formatDuration(maxServiceMs),
                     totalService: formatDuration(totalServiceMs),
-                    waitingTime: formatDuration(aveWaitingMs),
+                    clientWaitingTime: formatDuration(aveClientWaitingMs),
+                    agentWaitingTime: formatDuration(aveAgentWaitingMs),
                     idleTime: "0m",
                     breakTime: "0m",
                     queueDepartureTime: "0m",
@@ -245,9 +271,14 @@ const Dashboard: React.FC = () => {
     const servedTickets = allTickets.filter((t: Ticket) =>
         t.ticket_status === 100 && t.ticket_now_serving_datetime && t.ticket_served_datetime
     );
-    // Filter for tickets that have started being served to calculate waiting times
-    const waitingTickets = allTickets.filter((t: Ticket) =>
-        t.ticket_create_datetime && t.ticket_now_serving_datetime
+    // Filter for tickets that have enough data to calculate client waiting times
+    const clientWaitingTickets = allTickets.filter((t: Ticket) =>
+        t.ticket_create_datetime && t.ticket_assigned_datetime
+    );
+
+    // Filter for tickets that have enough data to calculate agent waiting times
+    const agentWaitingTickets = allTickets.filter((t: Ticket) =>
+        t.ticket_assigned_datetime && (t.ticket_now_serving_datetime || t.ticket_no_show_datetime || t.ticket_cancelled_datetime)
     );
 
     let allServiceDurations: number[] = [];
@@ -260,22 +291,43 @@ const Dashboard: React.FC = () => {
         }
     });
 
-    let allWaitingDurations: number[] = [];
-    waitingTickets.forEach(ticket => {
+    let allClientWaitingDurations: number[] = [];
+    clientWaitingTickets.forEach(ticket => {
         const createTime = parseDateTime(ticket.ticket_create_datetime);
-        const nowServingTime = parseDateTime(ticket.ticket_now_serving_datetime);
-        if (createTime && nowServingTime) {
-            const duration = nowServingTime.getTime() - createTime.getTime();
-            if (duration >= 0) allWaitingDurations.push(duration);
+        const assignedTime = parseDateTime(ticket.ticket_assigned_datetime);
+        if (createTime && assignedTime) {
+            const duration = assignedTime.getTime() - createTime.getTime();
+            if (duration >= 0) allClientWaitingDurations.push(duration);
         }
     });
 
-    // Calculate statistics for overall waiting time
-    const totalAvgWaitingTimeMs = allWaitingDurations.reduce((sum, d) => sum + d, 0);
-    const avgWaitingTime = formatDuration(allWaitingDurations.length > 0 ? totalAvgWaitingTimeMs / allWaitingDurations.length : 0);
-    const minWaitingTime = formatDuration(allWaitingDurations.length > 0 ? Math.min(...allWaitingDurations) : 0);
-    const maxWaitingTime = formatDuration(allWaitingDurations.length > 0 ? Math.max(...allWaitingDurations) : 0);
-    const totalWaitingTime = formatDuration(totalAvgWaitingTimeMs);
+    let allAgentWaitingDurations: number[] = [];
+    agentWaitingTickets.forEach(ticket => {
+        const assignedTime = parseDateTime(ticket.ticket_assigned_datetime);
+        const firstActionTime =
+            parseDateTime(ticket.ticket_now_serving_datetime) ||
+            parseDateTime(ticket.ticket_no_show_datetime) ||
+            parseDateTime(ticket.ticket_cancelled_datetime);
+
+        if (assignedTime && firstActionTime) {
+            const duration = firstActionTime.getTime() - assignedTime.getTime();
+            if (duration >= 0) allAgentWaitingDurations.push(duration);
+        }
+    });
+
+    // Calculate statistics for overall client waiting time
+    const totalAvgClientWaitingTimeMs = allClientWaitingDurations.reduce((sum, d) => sum + d, 0);
+    const avgClientWaitingTime = formatDuration(allClientWaitingDurations.length > 0 ? totalAvgClientWaitingTimeMs / allClientWaitingDurations.length : 0);
+    const minClientWaitingTime = formatDuration(allClientWaitingDurations.length > 0 ? Math.min(...allClientWaitingDurations) : 0);
+    const maxClientWaitingTime = formatDuration(allClientWaitingDurations.length > 0 ? Math.max(...allClientWaitingDurations) : 0);
+    const totalClientWaitingTime = formatDuration(totalAvgClientWaitingTimeMs);
+
+    // Calculate statistics for overall agent waiting time
+    const totalAvgAgentWaitingTimeMs = allAgentWaitingDurations.reduce((sum, d) => sum + d, 0);
+    const avgAgentWaitingTime = formatDuration(allAgentWaitingDurations.length > 0 ? totalAvgAgentWaitingTimeMs / allAgentWaitingDurations.length : 0);
+    const minAgentWaitingTime = formatDuration(allAgentWaitingDurations.length > 0 ? Math.min(...allAgentWaitingDurations) : 0);
+    const maxAgentWaitingTime = formatDuration(allAgentWaitingDurations.length > 0 ? Math.max(...allAgentWaitingDurations) : 0);
+    const totalAgentWaitingTime = formatDuration(totalAvgAgentWaitingTimeMs);
 
     // Calculate statistics for overall service time
     const totalAvgServiceTimeMs = allServiceDurations.reduce((sum, d) => sum + d, 0);
@@ -328,12 +380,21 @@ const Dashboard: React.FC = () => {
                 </div>
                 <div className="flex justify-center space-x-8 mb-6">
                     <div className="border border-gray-300 p-4 bg-white shadow-sm flex-1 max-w-lg rounded-md">
-                        <p className="text-lg font-semibold text-center mb-2">Average Waiting Time</p>
-                        <p className="text-4xl font-bold text-center text-blue-700 mb-4">{avgWaitingTime}</p>
+                        <p className="text-lg font-semibold text-center mb-2">Average Client Waiting Time</p>
+                        <p className="text-4xl font-bold text-center text-blue-700 mb-4">{avgClientWaitingTime}</p>
                         <div className="grid grid-cols-3 gap-2 text-center text-gray-700">
-                            <div>Min <span className="block font-bold">{minWaitingTime}</span></div>
-                            <div>Max <span className="block font-bold">{maxWaitingTime}</span></div>
-                            <div>Total <span className="block font-bold">{totalWaitingTime}</span></div>
+                            <div>Min <span className="block font-bold">{minClientWaitingTime}</span></div>
+                            <div>Max <span className="block font-bold">{maxClientWaitingTime}</span></div>
+                            <div>Total <span className="block font-bold">{totalClientWaitingTime}</span></div>
+                        </div>
+                    </div>
+                    <div className="border border-gray-300 p-4 bg-white shadow-sm flex-1 max-w-lg rounded-md">
+                        <p className="text-lg font-semibold text-center mb-2">Average Agent Waiting Time</p>
+                        <p className="text-4xl font-bold text-center text-blue-700 mb-4">{avgAgentWaitingTime}</p>
+                        <div className="grid grid-cols-3 gap-2 text-center text-gray-700">
+                            <div>Min <span className="block font-bold">{minAgentWaitingTime}</span></div>
+                            <div>Max <span className="block font-bold">{maxAgentWaitingTime}</span></div>
+                            <div>Total <span className="block font-bold">{totalAgentWaitingTime}</span></div>
                         </div>
                     </div>
                     <div className="border border-gray-300 p-4 bg-white shadow-sm flex-1 max-w-lg rounded-md">
@@ -354,13 +415,15 @@ const Dashboard: React.FC = () => {
                             <tr className="bg-gray-200 text-gray-700 border-gray-300 text-left text-sm font-semibold uppercase tracking-wider">
                                 <th rowSpan={2} className="px-3 py-2 border-r border-gray-300 text-center rounded-tl-md">Processor</th>
                                 <th rowSpan={2} className="px-3 py-2 border-r border-gray-300 text-center">Total Tickets Processed</th>
+                                <th colSpan={2} className="px-3 py-2 border-b border-r border-gray-300 text-center">Waiting Time</th> {/* Updated colSpan */}
                                 <th colSpan={4} className="px-3 py-2 border-b border-r border-gray-300 text-center">Service Time</th>
-                                <th rowSpan={2} className="px-3 py-2 border-r border-gray-300 text-center">Waiting Time</th>
                                 <th rowSpan={2} className="px-3 py-2 border-r border-gray-300 text-center">Idle Time</th>
                                 <th rowSpan={2} className="px-3 py-2 border-r border-gray-300 text-center">Break Time</th>
                                 <th rowSpan={2} className="px-3 py-2 text-center rounded-tr-md">Queue Departure Time</th>
                             </tr>
                             <tr className="bg-gray-200 text-gray-700 text-left text-xs font-semibold uppercase tracking-wider">
+                                <th className="px-3 py-2 border-r border-gray-300 text-center">Client Ave</th> {/* New header */}
+                                <th className="px-3 py-2 border-r border-gray-300 text-center">Agent Ave</th> {/* New header */}
                                 <th className="px-3 py-2 border-r border-gray-300 text-center">Ave</th>
                                 <th className="px-3 py-2 border-r border-gray-300 text-center">Min</th>
                                 <th className="px-3 py-2 border-r border-gray-300 text-center">Max</th>
@@ -373,11 +436,12 @@ const Dashboard: React.FC = () => {
                                 <tr key={index} className={index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
                                     <td className="px-3 py-2 whitespace-nowrap text-center font-medium">{processor.name}</td>
                                     <td className="px-3 py-2 whitespace-nowrap text-center">{processor.totalTickets}</td>
+                                    <td className="px-3 py-2 whitespace-nowrap text-center">{processor.clientWaitingTime}</td> {/* Client Waiting Time */}
+                                    <td className="px-3 py-2 whitespace-nowrap text-center">{processor.agentWaitingTime}</td> {/* Agent Waiting Time */}
                                     <td className="px-3 py-2 whitespace-nowrap text-center">{processor.aveService}</td>
                                     <td className="px-3 py-2 whitespace-nowrap text-center">{processor.minService}</td>
                                     <td className="px-3 py-2 whitespace-nowrap text-center">{processor.maxService}</td>
                                     <td className="px-3 py-2 whitespace-nowrap text-center">{processor.totalService}</td>
-                                    <td className="px-3 py-2 whitespace-nowrap text-center">{processor.waitingTime}</td>
                                     <td className="px-3 py-2 whitespace-nowrap text-center">{processor.idleTime}</td>
                                     <td className="px-3 py-2 whitespace-nowrap text-center">{processor.breakTime}</td>
                                     <td className="px-3 py-2 whitespace-nowrap text-center">{processor.queueDepartureTime}</td>

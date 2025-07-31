@@ -160,8 +160,7 @@ const CreatePodTicket: React.FC<{
         const ticketCreationDate = createdTicket.response?.data?.createdAt ?
             moment(createdTicket.response.data.createdAt).format('MM/DD/YYYY') : "undefined";
         const ticketCreationTime = createdTicket.response?.data?.createdAt ?
-            moment(createdTicket.response.data.createdAt).format('LT') : "undefined";
-
+            moment(createdTicket.response.data.createdAt).format('LTS') : "undefined";
         const generateBarcodeDataURL = (text: string): string => {
             if (!text || text === "undefined") return "";
 
@@ -194,7 +193,7 @@ const CreatePodTicket: React.FC<{
                         font-family: 'Inter', sans-serif;
                         margin: 0;
                         color: #000;
-                        font-size: 60px; /* Very large base font size. Be mindful of print dimensions. */
+                        font-size: 100px; /* Very large base font size. Be mindful of print dimensions. */
                         width: 100%;
                         box-sizing: border-box;
                     }
@@ -277,9 +276,8 @@ const CreatePodTicket: React.FC<{
 
                     .ticket-details .label {
                         /* Increase min-width for labels to ensure they have enough space */
-                        min-width: 3.5em; /* Increased from 2.5em; adjust as needed for longest label */
+                        min-width: 4.7em; /* Increased from 2.5em; adjust as needed for longest label */
                         text-align: left;
-                        margin-right: 0.5em;
                         flex-shrink: 0; /* Prevent the label from shrinking */
                     }
                     .ticket-details .value {
@@ -488,7 +486,8 @@ const CreatePodTicket: React.FC<{
                             </CardContent>
                             <CardFooter className='flex justify-between'>
                                 <Button onClick={onClose} variant='destructive' type='button'>Cancel</Button>
-                                <Button type='submit' isLoading={createTicketProps.isLoading}>Create Ticket</Button>
+                                <Button type='submit' isLoading={createTicketProps.isLoading} disabled={!formTicket.getValues('ticket_trip_number')}>Create Ticket</Button>
+                                
                             </CardFooter>
                         </Card>
                     </form>

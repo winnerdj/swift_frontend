@@ -77,7 +77,7 @@ const CreateDefaultTicket: React.FC<{
                         font-family: 'Inter', sans-serif;
                         margin: 0;
                         color: #000;
-                        font-size: 60px; /* Very large base font size. Be mindful of print dimensions. */
+                        font-size: 100px; /* Very large base font size. Be mindful of print dimensions. */
                         width: 100%;
                         box-sizing: border-box;
                     }
@@ -160,9 +160,8 @@ const CreateDefaultTicket: React.FC<{
 
                     .ticket-details .label {
                         /* Increase min-width for labels to ensure they have enough space */
-                        min-width: 3.5em; /* Increased from 2.5em; adjust as needed for longest label */
+                        min-width: 4.7em; /* Increased from 2.5em; adjust as needed for longest label */
                         text-align: left;
-                        margin-right: 0.5em;
                         flex-shrink: 0; /* Prevent the label from shrinking */
                     }
                     .ticket-details .value {

@@ -1,10 +1,11 @@
 import useDisclosure from '@/hooks/useDisclosure';
 import {
     useGetTicketsTodayByServiceIdQuery,
-    useGetActiveCountersTodayByServiceIdQuery
+    useGetActiveCountersTodayByServiceIdQuery,
+    useGetUserActivityTodayByServiceIdQuery
 } from '@/lib/redux/api/work.api';
 import React, { useEffect, useState } from 'react';
-import { useAppSelector } from "@/hooks/redux.hooks"; // Import useAppSelector
+import { useAppSelector } from "@/hooks/redux.hooks";
 import { getDashboardState } from "@/lib/redux/slices/dashboard.slice";
 import { Gauge } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -18,13 +19,13 @@ interface Ticket {
     ticket_level: number;
     ticket_parent_reference: string | null;
     ticket_head_reference: string | null;
-    ticket_counter: string | null; // Updated based on example JSON
-    ticket_support: string | null; // Can be null as per example
+    ticket_counter: string | null;
+    ticket_support: string | null;
     ticket_create_datetime: string;
     ticket_queue_datetime: string;
     ticket_assigned_datetime: string | null;
-    ticket_now_serving_datetime: string | null; // Can be null as per example
-    ticket_served_datetime: string | null; // Can be null as per example
+    ticket_now_serving_datetime: string | null;
+    ticket_served_datetime: string | null;
     ticket_no_show_datetime: string | null;
     ticket_cancelled_datetime: string | null;
     ticket_reason_code: string | null;
@@ -47,6 +48,24 @@ interface Ticket {
     service_location?: string;
 }
 
+// Define the UserActivity interface
+interface UserActivity {
+    log_id: string;
+    user_id: string;
+    activity: string;
+    location: string;
+    service_id: string;
+    counter: string;
+    user_status: string;
+    reason_code: string | null;
+    start_datetime: string;
+    duration: number; // Duration in seconds
+    createdBy: string | null;
+    updatedBy: string | null;
+    createdAt: string;
+    updatedAt: string;
+}
+
 // Define the interface for the calculated processor statistics
 interface ProcessorStats {
     name: string;
@@ -58,9 +77,9 @@ interface ProcessorStats {
     clientWaitingTime: string; // Renamed from waitingTime to clientWaitingTime
     agentWaitingTime: string; // New field for agent waiting time (Average)
     totalAgentWaitingTime: string; // New field for total agent waiting time
-    idleTime: string; // Placeholder, as not available in ticket data
-    breakTime: string; // Placeholder, as not available in ticket data
-    queueDepartureTime: string; // Placeholder, as not available in ticket data
+    idleTime: string;
+    breakTime: string;
+    totalLoggedInTime: string; // Changed from queueDepartureTime to totalLoggedInTime
 }
 
 /**
@@ -83,7 +102,7 @@ const parseDateTime = (datetimeString: string | null): Date | null => {
  * (e.g., "1h 30m 5s", "8m 23s", "0s").
  * @param milliseconds The duration in milliseconds.
  * @returns A formatted string representing the duration, or "N/A" if invalid.
-*/
+ */
 const formatDuration = (milliseconds: number | null): string => {
     if (milliseconds === null || isNaN(milliseconds) || milliseconds < 0) {
         return "N/A";
@@ -146,13 +165,27 @@ const Dashboard: React.FC = () => {
         }
     );
 
+    // Fetch user activity to align with the existing work session data
+    const { data: userActivityResponse = { data: [] }, isLoading: userActivityIsLoading } = useGetUserActivityTodayByServiceIdQuery(
+        {
+            service_id: service_id || '',
+        },
+        {
+            skip: !service_id,
+            refetchOnMountOrArgChange: true,
+            pollingInterval: 5000,
+            skipPollingIfUnfocused: true
+        }
+    );
+
     // State to hold the dynamically calculated processor data
     const [calculatedProcessorData, setCalculatedProcessorData] = useState<ProcessorStats[]>([]);
     const [activeCounters, setActiveCounters] = useState<number>(0);
 
     useEffect(() => {
-        if(ticketsResponse?.data.length > 0) {
+        if (ticketsResponse?.data.length > 0 || userActivityResponse?.data.length > 0) {
             const allTickets: Ticket[] = ticketsResponse.data;
+            const allUserActivities: UserActivity[] = userActivityResponse.data;
 
             // Filter out tickets that are 'Unassigned' before processing
             const assignedTickets = allTickets.filter(ticket => ticket.ticket_support !== null && ticket.ticket_support !== undefined && ticket.ticket_support !== '');
@@ -160,60 +193,139 @@ const Dashboard: React.FC = () => {
             const processorsMap: {
                 [key: string]: {
                     totalTickets: number;
-                    serviceDurations: number[]; // Stores durations in milliseconds
+                    serviceDurations: number[]; // Stores durations in milliseconds for active service (now serving to served/cancelled/no-show)
                     clientWaitingDurations: number[]; // Stores durations in milliseconds for client
-                    agentWaitingDurations: number[]; // Stores durations in milliseconds for agent
+                    agentWaitingDurations: number[]; // Stores durations in milliseconds for agent (assigned to now serving / no show / cancelled)
+                    totalBreakTime: number; // New field for total break time in milliseconds
+                    loggedInStart: Date | null; // Stores the start time of the logged-in session
+                    loggedInEnd: Date | null; // Stores the end time of the logged-in session
+                    busyTime: number; // sum of service time and agent waiting time
                 };
             } = {};
 
-            // Iterate only over assigned tickets
+            // Initialize processorsMap with user IDs from user activities
+            allUserActivities.forEach(activity => {
+                const userId = activity.user_id;
+                if (!processorsMap[userId]) {
+                    processorsMap[userId] = {
+                        totalTickets: 0,
+                        serviceDurations: [],
+                        clientWaitingDurations: [],
+                        agentWaitingDurations: [],
+                        totalBreakTime: 0,
+                        loggedInStart: null,
+                        loggedInEnd: null,
+                        busyTime: 0
+                    };
+                }
+
+                const activityStartTime = parseDateTime(activity.start_datetime);
+                const activityEndTime = parseDateTime(activity.updatedAt);
+
+                // Determine the earliest login time
+                if (activity.activity === "Queue Login" && activityStartTime) {
+                    if (!processorsMap[userId].loggedInStart || activityStartTime.getTime() < processorsMap[userId].loggedInStart.getTime()) {
+                        processorsMap[userId].loggedInStart = activityStartTime;
+                    }
+                }
+
+                // Determine the latest activity end time
+                if (activityEndTime) {
+                    if (!processorsMap[userId].loggedInEnd || activityEndTime.getTime() > processorsMap[userId].loggedInEnd.getTime()) {
+                        processorsMap[userId].loggedInEnd = activityEndTime;
+                    }
+                }
+
+                // Calculate Break Time from user activities
+                if (activity.activity === "Queue Breaktime" && activity.duration !== null) {
+                    processorsMap[userId].totalBreakTime += (activity.duration * 1000); // Convert seconds to milliseconds
+                }
+            });
+
+
+            // Iterate only over assigned tickets to calculate service and agent waiting times
             assignedTickets.forEach((ticket) => {
                 const processorId = ticket.ticket_support!; // We know it's not null/undefined here
 
-                if(!processorsMap[processorId]) {
+                // Ensure processorId exists in processorsMap (it should if they had activities)
+                if (!processorsMap[processorId]) {
                     processorsMap[processorId] = {
                         totalTickets: 0,
                         serviceDurations: [],
                         clientWaitingDurations: [],
                         agentWaitingDurations: [],
+                        totalBreakTime: 0,
+                        loggedInStart: null,
+                        loggedInEnd: null,
+                        busyTime: 0
                     };
                 }
 
                 processorsMap[processorId].totalTickets++;
 
-                const nowServingTime = parseDateTime(ticket.ticket_now_serving_datetime);
-                const servedTime = parseDateTime(ticket.ticket_served_datetime);
-
-                // Calculate Service Time
-                if(nowServingTime && servedTime) {
-                    const serviceDuration = servedTime.getTime() - nowServingTime.getTime();
-                    if (serviceDuration >= 0) {
-                        processorsMap[processorId].serviceDurations.push(serviceDuration);
-                    }
-                }
-
                 const createTime = parseDateTime(ticket.ticket_create_datetime);
                 const assignedTime = parseDateTime(ticket.ticket_assigned_datetime);
+                const nowServingTime = parseDateTime(ticket.ticket_now_serving_datetime);
+                const servedTime = parseDateTime(ticket.ticket_served_datetime);
+                const noShowTime = parseDateTime(ticket.ticket_no_show_datetime);
+                const cancelledTime = parseDateTime(ticket.ticket_cancelled_datetime);
+
 
                 // Calculate Client Waiting Time (ticket_create_datetime to ticket_assigned_datetime)
-                if(createTime && assignedTime) {
+                if (createTime && assignedTime) {
                     const clientWaitingTime = assignedTime.getTime() - createTime.getTime();
                     if (clientWaitingTime >= 0) {
                         processorsMap[processorId].clientWaitingDurations.push(clientWaitingTime);
                     }
                 }
 
-                // Calculate Agent Waiting Time (ticket_assigned_datetime to first occurrence of serving/no-show/cancelled)
-                if(assignedTime) {
-                    const firstActionTime =
-                        parseDateTime(ticket.ticket_now_serving_datetime) ||
-                        parseDateTime(ticket.ticket_no_show_datetime) ||
-                        parseDateTime(ticket.ticket_cancelled_datetime);
+                // Calculate Agent Waiting Time (assigned_datetime to now_serving_datetime OR (no_show/cancelled if no now_serving))
+                // This is the time the agent is "holding" the ticket before actively serving or before it's resolved without serving.
+                if (assignedTime) {
+                    let agentWaitingEnd: Date | null = null;
+                    if (nowServingTime) {
+                        agentWaitingEnd = nowServingTime;
+                    } else if (noShowTime) {
+                        agentWaitingEnd = noShowTime;
+                    } else if (cancelledTime) {
+                        agentWaitingEnd = cancelledTime;
+                    }
 
-                    if (firstActionTime) {
-                        const agentWaitingTime = firstActionTime.getTime() - assignedTime.getTime();
+                    if (agentWaitingEnd && agentWaitingEnd.getTime() >= assignedTime.getTime()) {
+                        const agentWaitingTime = agentWaitingEnd.getTime() - assignedTime.getTime();
                         if (agentWaitingTime >= 0) {
                             processorsMap[processorId].agentWaitingDurations.push(agentWaitingTime);
+                            processorsMap[processorId].busyTime += agentWaitingTime; // Add to busy time
+                        }
+                    }
+                }
+
+                // Calculate Service Time (now_serving_datetime to served/no_show/cancelled_datetime)
+                // This now includes time spent on cancelled/no-show tickets IF they reached "Now Serving"
+                if (nowServingTime) {
+                    let serviceEnd: Date | null = null;
+
+                    // Determine the end of service in order of preference/logic
+                    if (servedTime) {
+                        serviceEnd = servedTime;
+                    } else {
+                        // If not served, consider no-show or cancelled if they happened AFTER nowServingTime
+                        if (noShowTime && noShowTime.getTime() >= nowServingTime.getTime()) {
+                            serviceEnd = noShowTime;
+                        }
+                        if (cancelledTime && cancelledTime.getTime() >= nowServingTime.getTime()) {
+                            // Take the earliest of noShowTime and cancelledTime if both exist and are after nowServingTime
+                            if (!serviceEnd || cancelledTime.getTime() < serviceEnd.getTime()) {
+                                serviceEnd = cancelledTime;
+                            }
+                        }
+                    }
+
+                    if (serviceEnd && serviceEnd.getTime() >= nowServingTime.getTime()) {
+                        const serviceDuration = serviceEnd.getTime() - nowServingTime.getTime();
+                        if (serviceDuration >= 0) {
+                            processorsMap[processorId].serviceDurations.push(serviceDuration);
+                            processorsMap[processorId].busyTime += serviceDuration; // Add to busy time
                         }
                     }
                 }
@@ -233,6 +345,18 @@ const Dashboard: React.FC = () => {
                 const totalAgentWaitingMs = stats.agentWaitingDurations.reduce((sum, d) => sum + d, 0);
                 const aveAgentWaitingMs = stats.agentWaitingDurations.length > 0 ? totalAgentWaitingMs / stats.agentWaitingDurations.length : 0;
 
+                // Calculate Total Logged In Time
+                let totalLoggedInDuration = 0;
+                if (stats.loggedInStart && stats.loggedInEnd) {
+                    totalLoggedInDuration = stats.loggedInEnd.getTime() - stats.loggedInStart.getTime();
+                }
+
+                // Calculate Idle Time
+                // Total Logged In Time - Total Break Time - Total Busy Time
+                // Ensure idle time is not negative
+                const idleTimeMs = Math.max(0, totalLoggedInDuration - stats.totalBreakTime - stats.busyTime);
+
+
                 return {
                     name: processorId,
                     totalTickets: stats.totalTickets,
@@ -242,20 +366,20 @@ const Dashboard: React.FC = () => {
                     totalService: formatDuration(totalServiceMs),
                     clientWaitingTime: formatDuration(aveClientWaitingMs),
                     agentWaitingTime: formatDuration(aveAgentWaitingMs),
-                    totalAgentWaitingTime: formatDuration(totalAgentWaitingMs), // Add this line
-                    idleTime: "0m",
-                    breakTime: "0m",
-                    queueDepartureTime: "0m",
+                    totalAgentWaitingTime: formatDuration(totalAgentWaitingMs),
+                    idleTime: formatDuration(idleTimeMs),
+                    breakTime: formatDuration(stats.totalBreakTime),
+                    totalLoggedInTime: formatDuration(totalLoggedInDuration),
                 };
             });
 
             setCalculatedProcessorData(newProcessorData);
         }
 
-        if(countersResponse?.data.length > 0) {
+        if (countersResponse?.data.length > 0) {
             setActiveCounters(countersResponse?.data.length);
         }
-    }, [ticketsResponse, ticketsIsLoading, countersResponse, countersIsLoading]);
+    }, [ticketsResponse, ticketsIsLoading, countersResponse, countersIsLoading, userActivityResponse, userActivityIsLoading]);
 
     // Get all tickets from the response, defaulting to an empty array if undefined
     const allTickets: Ticket[] = ticketsResponse.data || [];
@@ -269,10 +393,9 @@ const Dashboard: React.FC = () => {
     const servedCount = allTickets.filter((t: Ticket) => t.ticket_status === 100).length;
 
     // --- Calculate Overall Average Waiting and Service Times ---
-    // Filter for tickets that have completed a service (served) to calculate service times
-    const servedTickets = allTickets.filter((t: Ticket) =>
-        t.ticket_status === 100 && t.ticket_now_serving_datetime && t.ticket_served_datetime
-    );
+    // Filter for tickets that have a 'now serving' timestamp to calculate service times
+    const ticketsWithNowServing = allTickets.filter((t: Ticket) => t.ticket_now_serving_datetime);
+
     // Filter for tickets that have enough data to calculate client waiting times
     const clientWaitingTickets = allTickets.filter((t: Ticket) =>
         t.ticket_create_datetime && t.ticket_assigned_datetime
@@ -284,12 +407,31 @@ const Dashboard: React.FC = () => {
     );
 
     let allServiceDurations: number[] = [];
-    servedTickets.forEach(ticket => {
+    ticketsWithNowServing.forEach(ticket => {
         const nowServingTime = parseDateTime(ticket.ticket_now_serving_datetime);
         const servedTime = parseDateTime(ticket.ticket_served_datetime);
-        if (nowServingTime && servedTime) {
-            const duration = servedTime.getTime() - nowServingTime.getTime();
-            if (duration >= 0) allServiceDurations.push(duration);
+        const noShowTime = parseDateTime(ticket.ticket_no_show_datetime);
+        const cancelledTime = parseDateTime(ticket.ticket_cancelled_datetime);
+
+        if (nowServingTime) {
+            let serviceEnd: Date | null = null;
+            if (servedTime) {
+                serviceEnd = servedTime;
+            } else {
+                if (noShowTime && noShowTime.getTime() >= nowServingTime.getTime()) {
+                    serviceEnd = noShowTime;
+                }
+                if (cancelledTime && cancelledTime.getTime() >= nowServingTime.getTime()) {
+                    if (!serviceEnd || cancelledTime.getTime() < serviceEnd.getTime()) {
+                        serviceEnd = cancelledTime;
+                    }
+                }
+            }
+
+            if (serviceEnd && serviceEnd.getTime() >= nowServingTime.getTime()) {
+                const duration = serviceEnd.getTime() - nowServingTime.getTime();
+                if (duration >= 0) allServiceDurations.push(duration);
+            }
         }
     });
 
@@ -417,15 +559,15 @@ const Dashboard: React.FC = () => {
                             <tr className="bg-gray-200 text-gray-700 border-gray-300 text-left text-sm font-semibold uppercase tracking-wider">
                                 <th rowSpan={2} className="px-3 py-2 border-r border-gray-300 text-center rounded-tl-md">Processor</th>
                                 <th rowSpan={2} className="px-3 py-2 border-r border-gray-300 text-center">Total Tickets Processed</th>
-                                <th colSpan={2} className="px-3 py-2 border-b border-r border-gray-300 text-center">Waiting Time</th> {/* Updated colSpan to 2 */}
+                                <th colSpan={2} className="px-3 py-2 border-b border-r border-gray-300 text-center">Waiting Time</th>
                                 <th colSpan={4} className="px-3 py-2 border-b border-r border-gray-300 text-center">Service Time</th>
                                 <th rowSpan={2} className="px-3 py-2 border-r border-gray-300 text-center">Idle Time</th>
                                 <th rowSpan={2} className="px-3 py-2 border-r border-gray-300 text-center">Break Time</th>
-                                <th rowSpan={2} className="px-3 py-2 text-center rounded-tr-md">Queue Departure Time</th>
+                                <th rowSpan={2} className="px-3 py-2 text-center rounded-tr-md">Total Logged in Time</th>
                             </tr>
                             <tr className="bg-gray-200 text-gray-700 text-left text-xs font-semibold uppercase tracking-wider">
-                                <th className="px-3 py-2 border-r border-gray-300 text-center">Agent Ave</th> {/* New header */}
-                                <th className="px-3 py-2 border-r border-gray-300 text-center">Agent Total</th> {/* Added new header for Total Agent Waiting Time */}
+                                <th className="px-3 py-2 border-r border-gray-300 text-center">Agent Ave</th>
+                                <th className="px-3 py-2 border-r border-gray-300 text-center">Agent Total</th>
                                 <th className="px-3 py-2 border-r border-gray-300 text-center">Ave</th>
                                 <th className="px-3 py-2 border-r border-gray-300 text-center">Min</th>
                                 <th className="px-3 py-2 border-r border-gray-300 text-center">Max</th>
@@ -438,15 +580,15 @@ const Dashboard: React.FC = () => {
                                 <tr key={index} className={index % 2 === 0 ? 'bg-gray-50' : 'bg-white'}>
                                     <td className="px-3 py-2 whitespace-nowrap text-center font-medium">{processor.name}</td>
                                     <td className="px-3 py-2 whitespace-nowrap text-center">{processor.totalTickets}</td>
-                                    <td className="px-3 py-2 whitespace-nowrap text-center">{processor.agentWaitingTime}</td> {/* Agent Waiting Time (Average) */}
-                                    <td className="px-3 py-2 whitespace-nowrap text-center">{processor.totalAgentWaitingTime}</td> {/* Agent Waiting Time (Total) */}
+                                    <td className="px-3 py-2 whitespace-nowrap text-center">{processor.agentWaitingTime}</td>
+                                    <td className="px-3 py-2 whitespace-nowrap text-center">{processor.totalAgentWaitingTime}</td>
                                     <td className="px-3 py-2 whitespace-nowrap text-center">{processor.aveService}</td>
                                     <td className="px-3 py-2 whitespace-nowrap text-center">{processor.minService}</td>
                                     <td className="px-3 py-2 whitespace-nowrap text-center">{processor.maxService}</td>
                                     <td className="px-3 py-2 whitespace-nowrap text-center">{processor.totalService}</td>
                                     <td className="px-3 py-2 whitespace-nowrap text-center">{processor.idleTime}</td>
                                     <td className="px-3 py-2 whitespace-nowrap text-center">{processor.breakTime}</td>
-                                    <td className="px-3 py-2 whitespace-nowrap text-center">{processor.queueDepartureTime}</td>
+                                    <td className="px-3 py-2 whitespace-nowrap text-center">{processor.totalLoggedInTime}</td>
                                 </tr>
                             ))}
                         </tbody>

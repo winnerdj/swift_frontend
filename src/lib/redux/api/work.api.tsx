@@ -13,6 +13,10 @@ type getActiveCountersTodayByServiceId = {
     service_id: string;
 }
 
+type getUserActivityTodayByServiceId = {
+    service_id: string;
+}
+
 type startServing = {
     ticket_id: string;
     ticket_status: number;
@@ -57,6 +61,8 @@ export const {
     useLazyGetActiveAssignedTicketQuery,
     useGetTicketsTodayByServiceIdQuery,
     useLazyGetTicketsTodayByServiceIdQuery,
+    useGetUserActivityTodayByServiceIdQuery,
+    useLazyGetUserActivityTodayByServiceIdQuery,
     usePostStartServingMutation,
     usePostEndServingMutation,
     usePostNoShowMutation,
@@ -120,6 +126,14 @@ export const {
         getActiveCountersTodayByServiceId: builder.query<any, getActiveCountersTodayByServiceId>({
             query: (args) => ({
                 url: '/work/all-active-counters-today-by-service',
+                method: 'GET',
+                params: args,
+            }),
+            providesTags: ['TodayTicketsByService']
+        }),
+        getUserActivityTodayByServiceId: builder.query<any, getUserActivityTodayByServiceId>({
+            query: (args) => ({
+                url: '/work/all-user-activity-today-by-service',
                 method: 'GET',
                 params: args,
             }),

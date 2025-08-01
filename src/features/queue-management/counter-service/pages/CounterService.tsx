@@ -385,7 +385,7 @@ const CounterService: React.FC = () => {
             {/* BODY */}
             <div className="flex flex-col w-full h-full bg-gray-300">
                 <div className="flex flex-grow p-4 space-x-4">
-                    <div className="flex flex-col w-2/3 space-y-4">
+                    <div className="flex flex-col w-2/3 gap-4">
                         <div className={`bg-blue-800 text-white p-6 ${activeAssignedTicketData?.data ? '' : 'flex justify-center items-center h-48'}`}>
                             {isLoading ? (
                                 <p className="text-2xl text-center">Loading...</p>
@@ -404,7 +404,7 @@ const CounterService: React.FC = () => {
                         </div>
 
                         <div className="flex flex-row gap-4 flex-grow">
-                            <div className="flex flex-col space-y-4 flex-1">
+                            <div className="flex flex-col gap-4 flex-1">
                                 <Button
                                     className="bg-gray-200 text-black hover:bg-gray-300 p-4 h-auto text-xl font-bold border border-gray-400"
                                     onClick={handleRecall}
@@ -427,7 +427,7 @@ const CounterService: React.FC = () => {
                                 </Button>
                             </div>
 
-                            <div className="flex flex-col space-y-4 flex-1">
+                            <div className="flex flex-col gap-4 flex-1">
                                 <Button
                                     className={`p-4 h-auto text-xl font-bold border border-gray-400 ${
                                         isNowServingActive ? 'bg-blue-400 text-black' : 'bg-gray-200 text-black hover:bg-gray-300'
@@ -476,7 +476,7 @@ const CounterService: React.FC = () => {
                         </div>
                     </div>
 
-                    <div className="flex flex-col w-1/3 space-y-4">
+                    <div className="flex flex-col w-1/3 gap-4">
                         <div className='border-1 border-gray-400'>
                             <div className="bg-red-600 text-white p-2 text-center text-xl font-bold">Queued:</div>
                             <div className="bg-white text-black p-2 text-center text-6xl font-bold border-gray-300">
@@ -493,7 +493,7 @@ const CounterService: React.FC = () => {
 
                         <div className='border-1 border-gray-400'>
                             <div className="bg-black text-white text-center text-xl font-bold">Transfer Ticket</div>
-                            <div className="bg-gray-100 p-4 flex flex-col space-y-4">
+                            <div className="bg-gray-100 p-4 flex flex-col gap-4">
                                 <div className="flex items-center space-x-2">
                                     <span className="text-gray-700 font-semibold text-lg">To Service:</span>
                                     <div className="flex-grow text-black">
@@ -521,7 +521,7 @@ const CounterService: React.FC = () => {
 
                         <div className='border-1 border-gray-400'>
                             <div className="bg-black text-white text-center text-xl font-bold">Ticket Status Override</div>
-                            <div className="bg-gray-100 p-4 flex flex-col space-y-4">
+                            <div className="bg-gray-100 p-4 flex flex-col gap-4">
                                 <div className="flex items-center space-x-2">
                                     <span className="text-gray-700 font-semibold text-lg">Ticket Number:</span>
                                     <Input

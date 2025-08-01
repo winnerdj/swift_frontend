@@ -224,15 +224,23 @@ const Dashboard: React.FC = () => {
 
                 // Determine the earliest login time
                 if (activity.activity === "Queue Login" && activityStartTime) {
-                    if (!processorsMap[userId].loggedInStart || activityStartTime.getTime() < processorsMap[userId]?.loggedInStart.getTime()) {
+                    if (processorsMap[userId].loggedInStart) {
+                        if (activityStartTime.getTime() < processorsMap[userId].loggedInStart.getTime()) {
+                            processorsMap[userId].loggedInStart = activityStartTime;
+                        }
+                    } else {
                         processorsMap[userId].loggedInStart = activityStartTime;
                     }
                 }
 
                 // Determine the latest activity end time
                 if (activityEndTime) {
-                    if (!processorsMap[userId].loggedInEnd || activityEndTime.getTime() > processorsMap[userId]?.loggedInEnd.getTime()) {
-                        processorsMap[userId].loggedInEnd = activityEndTime;
+                    if (processorsMap[userId].loggedInEnd) {
+                        if (activityEndTime.getTime() > processorsMap[userId].loggedInEnd.getTime()) {
+                            processorsMap[userId].loggedInEnd = activityEndTime;
+                        }
+                    } else {
+                        processorsMap[userId].loggedInStart = activityStartTime;
                     }
                 }
 

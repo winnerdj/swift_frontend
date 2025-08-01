@@ -384,7 +384,7 @@ const CounterService: React.FC = () => {
 
             {/* BODY */}
             <div className="flex flex-col w-full h-full bg-gray-300">
-                <div className="flex flex-grow p-4 space-x-4">
+                <div className="flex flex-grow p-4 gap-x-4">
                     <div className="flex flex-col w-2/3 gap-4">
                         <div className={`bg-blue-800 text-white p-6 ${activeAssignedTicketData?.data ? '' : 'flex justify-center items-center h-48'}`}>
                             {isLoading ? (
@@ -494,7 +494,7 @@ const CounterService: React.FC = () => {
                         <div className='border-1 border-gray-400'>
                             <div className="bg-black text-white text-center text-xl font-bold">Transfer Ticket</div>
                             <div className="bg-gray-100 p-4 flex flex-col gap-4">
-                                <div className="flex items-center space-x-2">
+                                <div className="flex items-center gap-x-2">
                                     <span className="text-gray-700 font-semibold text-lg">To Service:</span>
                                     <div className="flex-grow text-black">
                                         <APISelect
@@ -522,7 +522,7 @@ const CounterService: React.FC = () => {
                         <div className='border-1 border-gray-400'>
                             <div className="bg-black text-white text-center text-xl font-bold">Ticket Status Override</div>
                             <div className="bg-gray-100 p-4 flex flex-col gap-4">
-                                <div className="flex items-center space-x-2">
+                                <div className="flex items-center gap-x-2">
                                     <span className="text-gray-700 font-semibold text-lg">Ticket Number:</span>
                                     <Input
                                         className="flex-grow bg-white border border-gray-300 text-black"
@@ -530,7 +530,7 @@ const CounterService: React.FC = () => {
                                         onChange={(e) => setOverrideTicketNumber(e.target.value)}
                                     />
                                 </div>
-                                <div className="flex items-center space-x-2">
+                                <div className="flex items-center gap-x-2">
                                     <span className="text-gray-700 font-semibold text-lg">Ticket Status:</span>
                                     <div className="flex-grow text-black">
                                         <APISelect

@@ -7,7 +7,6 @@ interface FormLabelProps {
 }
 
 const FormAppLabel: React.FC<FormLabelProps> = (props) => {
-    console.log(props.value)
     return (
         <FormItem className='grid grid-cols-1 gap-1'>
             <FormLabel className='font-semibold font-sans'>{props.label}</FormLabel>

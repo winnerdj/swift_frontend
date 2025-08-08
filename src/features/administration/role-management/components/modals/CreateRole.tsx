@@ -41,7 +41,6 @@ const CreateRole: React.FC<CreateRoleProps> = (props) => {
     });
 
     const handleSubmit = async (data: CreateRoleType) => {
-        // console.log("role:", role); // Debugging
         console.log("Submitting data:", data); // Debugging
 
         await createRole({
@@ -71,7 +70,6 @@ const CreateRole: React.FC<CreateRoleProps> = (props) => {
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(
                             (data) => {
-                                console.log("Form submitted successfully:", data);
                                 handleSubmit(data);
                             }, (errors) => console.log("Form validation errors:", errors)
                         )}

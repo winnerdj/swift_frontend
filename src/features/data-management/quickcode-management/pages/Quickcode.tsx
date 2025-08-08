@@ -22,10 +22,6 @@ const Quickcode: React.FC<QuickcodeProps> = () => {
     const [selectedRows, setSelectedRows] = React.useState<quickcodeTableType[]>([]);
     const [clickedRow, setClickedRow] = React.useState<quickcodeTableType | null>(null);
 
-    React.useEffect(() => {
-        console.log('rowSelection', rowSelection)
-    }, [rowSelection])
-
     return (
         <div className='grid gap-3 pl-2 pr-2'>
             {/* HEADER */}

@@ -307,7 +307,6 @@ const CounterService: React.FC = () => {
 
                 setTransferredNewTicketNumber(newTicketData);
                 toast.success(`Ticket transferred to ${transferToService?.label}. Kindly print the new ticket.`);
-                // setTransferToService(null)
             }
             else {
                 console.log('Ticket transfer unsuccessful.');
@@ -318,11 +317,6 @@ const CounterService: React.FC = () => {
     };
 
     const handlePrintTicket = async() => {
-
-        console.log("🚀 -------------------------------------------------------------------------------------🚀");
-        console.log("🚀 ~ CounterService.tsx:322 ~ transferredNewTicketNumber:", transferredNewTicketNumber);
-        console.log("🚀 -------------------------------------------------------------------------------------🚀");
-
         if(!transferredNewTicketNumber) {
             toast.error("No ticket data to print.");
             return;
@@ -556,7 +550,9 @@ const CounterService: React.FC = () => {
             }
         };
 
-        await sendPrintJobToBixolonSDK({ createdTicket: transferredNewTicketNumber })
+        await sendPrintJobToBixolonSDK({ createdTicket: transferredNewTicketNumber }).then(() => {
+            console.log("Ticket print job sent successfully.");
+        })
         setTransferToService(null)
     };
 

@@ -103,7 +103,6 @@ const CreateService: React.FC<CreateServiceProps> = (props) => {
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(
                             (data) => {
-                                console.log("Form submitted successfully:", data);
                                 handleSubmit(data);
                             }, (errors) => console.log("Form validation errors:", errors)
                         )}

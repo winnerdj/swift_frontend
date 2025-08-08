@@ -82,8 +82,6 @@ const UserActivityTable: React.FC<UserActivityTableProps> = ({
             accessorKey: 'service_id',
             header: 'Service Name',
             cell: ({ row }) => {
-                // Safely access the nested service_id
-                console.log(row)
                 return row.original?.srv_user_activity?.service_name || ''
             }
         },

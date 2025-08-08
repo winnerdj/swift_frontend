@@ -24,10 +24,6 @@ const User: React.FC<UserProps> = () => {
     const [selectedRows, setSelectedRows] = React.useState<userTableType[]>([]);
     const [clickedRow, setClickedRow] = React.useState<userTableType | null>(null);
 
-    // React.useEffect(() => {
-    //     console.log('rowSelection', rowSelection)
-    // }, [rowSelection])
-
     return (
         <div className='grid gap-3 pl-2 pr-2'>
             {/* HEADER */}
@@ -36,12 +32,6 @@ const User: React.FC<UserProps> = () => {
                     <UserRoundPlus/>
                     Create User
                 </Button>
-                {/* <Button variant={'ghost'} className='p-2 h-7 hover:bg-gray-400 gap-1.5' onClick={() => console.log('selectedRows',selectedRows)}><CodeXml/>
-                log selectedRows
-                </Button>
-                <Button variant={'ghost'} className='p-2 h-7 hover:bg-gray-400 gap-1.5' onClick={() => console.log('clickedRow',clickedRow)}><CodeXml/>
-                log clickedRow
-                </Button> */}
             </div>
             <div className='rounded-xs h-full bg-gray-50 shadow-2xs p-4'>
                 <UserContextProvider>

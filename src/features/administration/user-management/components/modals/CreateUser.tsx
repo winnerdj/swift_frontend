@@ -64,7 +64,6 @@ const CreateUser: React.FC<CreateUserProps> = (props) => {
     });
 
     const handleSubmit = async (data: CreateUserType) => {
-        // console.log("role:", role); // Debugging
         console.log("Submitting data:", data); // Debugging
 
         if(!role?.value) {
@@ -106,7 +105,6 @@ const CreateUser: React.FC<CreateUserProps> = (props) => {
                 <Form {...form}>
                     <form onSubmit={form.handleSubmit(
                             (data) => {
-                                console.log("Form submitted successfully:", data);
                                 handleSubmit(data);
                             }, (errors) => console.log("Form validation errors:", errors)
                         )}

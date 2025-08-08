@@ -297,51 +297,6 @@ const handlePrintTicket = ({ createdTicket }: { createdTicket: any }) => {
                         <img id="barcode">
                     </div>
                 </div>
-                <script>
-                    window.onload = function() {
-                        const ticketNumber = "${ticketNumber}"; // Get the dynamic ticket number
-                        console.log('Print window onload. Ticket Number:', ticketNumber);
-
-                        if(ticketNumber && ticketNumber !== "undefined") {
-                            JsBarcode("#barcode", ticketNumber, {
-                                format: "CODE128",
-                                displayValue: true,
-                                height: 35,
-                                width: 1.5,
-                                margin: 0,
-                                background: "#ffffff",
-                                lineColor: "#000000",
-                                valid: function () {
-                                    console.log('Barcode rendered, attempting to print...');
-                                    setTimeout(() => {
-                                        window.print();
-                                        window.onafterprint = function() {
-                                            console.log('After print, closing window.');
-                                            window.close();
-                                        };
-                                    }, 150);
-                                },
-                                error: function(err) {
-                                    console.error("JsBarcode error:", err);
-                                    setTimeout(() => {
-                                        window.print();
-                                        window.onafterprint = function() {
-                                            window.close();
-                                        };
-                                    }, 150);
-                                }
-                            });
-                        } else {
-                            console.error('Invalid ticket number for barcode generation. Printing without barcode.');
-                            setTimeout(() => {
-                                window.print();
-                                window.onafterprint = function() {
-                                    window.close();
-                                };
-                            }, 150);
-                        }
-                    };
-                </script>
             </body>
             </html>
         `);

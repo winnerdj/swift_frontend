@@ -193,7 +193,6 @@ const CreatePodTicket: React.FC<{
                         font-family: 'Inter', sans-serif;
                         margin: 0;
                         color: #000;
-                        font-size: 100px; /* Very large base font size. Be mindful of print dimensions. */
                         width: 100%;
                         box-sizing: border-box;
                     }
@@ -207,16 +206,16 @@ const CreatePodTicket: React.FC<{
                         padding: 1px;
                     }
                     h1 {
-                        font-size: 1.2em;
+                        font-size: 13px;
                         text-align: center;
                         margin: 5px 0;
                     }
                     .ticket-header {
-                        font-size: 1;
+                        font-size: 30px;
                         padding: 0 0 20px 0;
                     }
                     .ticket-number {
-                        font-size: 1.8em;
+                        font-size: 80px;
                         font-weight: bold;
                         text-align: center;
                         padding: 0 0 100px 0;
@@ -224,7 +223,7 @@ const CreatePodTicket: React.FC<{
                         border-bottom: 13px solid #000;
                     }
                     .ticket-message {
-                        font-size: 1em;
+                        font-size: 50px;
                         font-weight: 500;
                         text-align: center;
                     }
@@ -245,7 +244,7 @@ const CreatePodTicket: React.FC<{
                     }
                     .barcode-label {
                         text-align: center;
-                        font-size: 0.5em;
+                        font-size: 50px;
                     }
                     .main-content {
                         display: flex;
@@ -267,13 +266,11 @@ const CreatePodTicket: React.FC<{
                         display: flex;
                         flex-direction: column;
                     }
-
                     .ticket-details p {
                         display: flex;
                         align-items: baseline;
                         flex-wrap: nowrap; /* Keep label and value on one line for small content */
                     }
-
                     .ticket-details .label {
                         /* Increase min-width for labels to ensure they have enough space */
                         min-width: 4.7em; /* Increased from 2.5em; adjust as needed for longest label */

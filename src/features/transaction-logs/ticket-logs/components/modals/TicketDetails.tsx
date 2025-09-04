@@ -43,6 +43,8 @@ type ticketTableType = {
     ticket_number_prefix?: string;
     recall_waiting_flag?: boolean;
     recall_waiting_time?: number;
+    srv_ticket_service?: any;
+    qc_ticket_status?: any;
 }
 
 interface TicketDetailsProps {
@@ -71,6 +73,8 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ onClose, isOpen, selected
         }
     };
 
+    console.log('Selected Ticket in TicketDetails:', selectedTicket);
+
     return (
         <Dialog open={isOpen} onClose={onClose}>
             <DialogPanel className="md:max-w-5xl w-full">
@@ -88,12 +92,12 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ onClose, isOpen, selected
                                 </div>
                                 <div className="space-y-1">
                                     <p className="text-sm font-semibold text-gray-500">Service:</p>
-                                    <p className="text-lg font-bold">{selectedTicket.ticket_service || 'N/A'}</p>
+                                    <p className="text-lg font-bold">{selectedTicket.srv_ticket_service.service_name || 'N/A'}</p>
                                 </div>
                                 <div className="space-y-1">
                                     <p className="text-sm font-semibold text-gray-500">Status:</p>
                                     <p className="text-lg font-bold">
-                                        {selectedTicket.ticket_status === 1 ? 'Active' : 'Inactive'}
+                                        {selectedTicket.qc_ticket_status.qc_description}
                                     </p>
                                 </div>
 
@@ -201,16 +205,6 @@ const TicketDetails: React.FC<TicketDetailsProps> = ({ onClose, isOpen, selected
                                 <div className="space-y-1">
                                     <p className="text-sm font-semibold text-gray-500">Reason Code:</p>
                                     <p className="text-base">{selectedTicket.ticket_reason_code || 'N/A'}</p>
-                                </div>
-
-                                {/* Created/Updated By */}
-                                <div className="space-y-1 col-span-1 md:col-span-2 lg:col-span-3">
-                                    <p className="text-sm font-semibold text-gray-500">Created By:</p>
-                                    <p className="text-base">{selectedTicket.createdBy || 'N/A'}</p>
-                                </div>
-                                <div className="space-y-1 col-span-1 md:col-span-2 lg:col-span-3">
-                                    <p className="text-sm font-semibold text-gray-500">Last Updated By:</p>
-                                    <p className="text-base">{selectedTicket.updatedBy || 'N/A'}</p>
                                 </div>
 
                                 {/* Displaying service-related fields if they are available in selectedTicket */}

@@ -66,6 +66,7 @@ const UpdateUser: React.FC<UpdateUserProps> = ({ isOpen, onClose, selectedUser }
     // Effect to update form values when selectedUser changes
     React.useEffect(() => {
         if(selectedUser) {
+            setUserLocation({label: `${selectedUser.user_location.split('@')[1]} : ${selectedUser.user_location.split('@')[1]}`, value: selectedUser.user_location})
             form.reset({
                 user_name: selectedUser.user_name || '',
                 user_role: selectedUser.user_role || '',

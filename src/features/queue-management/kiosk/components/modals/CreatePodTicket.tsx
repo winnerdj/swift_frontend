@@ -16,6 +16,7 @@ import html2canvas from 'html2canvas';
 
 const api = axios.create({
     baseURL: 'https://127.0.0.1:8081',
+    timeout: 5000,
     headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
         'Access-Control-Request-Private-Network': true
@@ -56,6 +57,7 @@ const CreatePodTicket: React.FC<{
     const [createTicket, createTicketProps] = useCreateTicketMutation();
     const [fetchTripDetails, { isFetching: isFetchingTrip, isLoading: isLoadingTrip }] = useLazyGetTripDetailsQuery();
     const [tripPlanValidationMessage, setTripPlanValidationMessage] = useState<string | null>(null);
+    const [isPrintTicketButtonDisable, setIsPrintTicketButtonDisable] = React.useState(false);
 
     const formTrip = useForm<FetchTripNumberType>({
         resolver: yupResolver(TripNumberSchema),
@@ -110,6 +112,7 @@ const CreatePodTicket: React.FC<{
 
     const handleCreateTicket = async (data: CreatePodTicketType) => {
         try {
+            setIsPrintTicketButtonDisable(true);
             const response = await createTicket({
                 ticket_service: selectedService?.service_id ?? '',
                 ticket_level: 1,
@@ -117,39 +120,43 @@ const CreatePodTicket: React.FC<{
                 ticket_vehicle_type: data.ticket_vehicle_type,
                 ticket_plate_num: data.ticket_plate_num
             }).unwrap();
+
             let createdTicket = {
                 selectedService: selectedService,
                 response: null
             };
 
-            if (response.data) {
+            if(response.data) {
                 console.log("Ticket created successfully:", response.data);
                 createdTicket.response = response;
             }
 
-            if (response.success && response.data) {
-                toast.success(response.message);
-                const newTicketNumber = response.ticket_number || Math.floor(Math.random() * 1000) + 1;
+            if(response.success && response.data) {
+                toast.success(`Ticket created successfully: ${response.data.ticket_id}`, { autoClose: 5000 });
+                const newTicketNumber = response.data.ticket_id;
                 onCreateTicket(newTicketNumber);
                 formTicket.reset();
                 formTrip.reset();
                 await sendPrintJobToBixolonSDK({ createdTicket });
                 onClose();
-            } else if (response.error) {
+            } 
+            else if(response.error) {
                 toast.error(response.error);
-            } else {
+            }
+            else {
                 toast.error("An unexpected error occurred during ticket creation.");
             }
-        }
-        catch (error: any) {
+        } catch(error: any) {
             console.error("Error creating ticket:", error);
             const errorMessage = error?.data?.error || error?.message || "Failed to create ticket.";
             toast.error(errorMessage);
+        } finally {
+            setIsPrintTicketButtonDisable(false);
         }
     };
 
     const sendPrintJobToBixolonSDK = async ({ createdTicket }: { createdTicket: any }) => {
-        if (!createdTicket) {
+        if(!createdTicket) {
             toast.error("No ticket data to print.");
             return;
         }
@@ -162,7 +169,7 @@ const CreatePodTicket: React.FC<{
         const ticketCreationTime = createdTicket.response?.data?.createdAt ?
             moment(createdTicket.response.data.createdAt).format('LTS') : "undefined";
         const generateBarcodeDataURL = (text: string): string => {
-            if (!text || text === "undefined") return "";
+            if(!text || text === "undefined") return "";
 
             const canvas = document.createElement('canvas');
             try {
@@ -366,13 +373,17 @@ const CreatePodTicket: React.FC<{
                 console.error("HTTP error sending to BIXOLON SDK:", response.status, response.statusText);
             }
         } catch (error) {
-            if (axios.isAxiosError(error)) {
+            if(axios.isAxiosError(error)) {
                 // Now 'error' is safely typed as AxiosError
                 console.error("Axios error connecting to BIXOLON SDK:", error?.message, error?.response?.data);
-            } else if (error instanceof Error) {
+                toast.error("System error connecting to Printer SDK.");
+            
+            }
+            else if (error instanceof Error) {
                 // Handle generic JavaScript Error objects
                 console.error("General error:", error?.message);
-            } else {
+            }
+            else {
                 // Handle other unknown error types
                 console.error("An unknown error occurred:", error);
             }
@@ -484,8 +495,9 @@ const CreatePodTicket: React.FC<{
                             </CardContent>
                             <CardFooter className='flex justify-between'>
                                 <Button onClick={onClose} variant='destructive' type='button'>Cancel</Button>
-                                <Button type='submit' isLoading={createTicketProps.isLoading} disabled={!formTicket.getValues('ticket_trip_number')}>Create Ticket</Button>
-                                
+                                <Button type='submit' isLoading={createTicketProps.isLoading || isPrintTicketButtonDisable} disabled={!formTicket.getValues('ticket_trip_number')}>
+                                    {createTicketProps.isLoading || isPrintTicketButtonDisable ? 'Printing...' : 'Print Ticket'}
+                                </Button>
                             </CardFooter>
                         </Card>
                     </form>

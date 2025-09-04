@@ -11,6 +11,7 @@ import axios from 'axios';
 
 const api = axios.create({
     baseURL: 'https://127.0.0.1:8081',
+    timeout: 5000,
     headers: {
         'Content-Type': 'application/x-www-form-urlencoded',
         'Access-Control-Request-Private-Network': true
@@ -32,9 +33,10 @@ const CreateDefaultTicket: React.FC<{
 }> = (props) => {
     const { onClose, isOpen, selectedService, onCreateTicket } = props;
     const [createTicket, createTicketProps] = useCreateTicketMutation(); // Destructure createTicketProps to get isLoading
+    const [isPrintTicketButtonDisable, setIsPrintTicketButtonDisable] = React.useState(false);
 
     const sendPrintJobToBixolonSDK = async ({ createdTicket }: { createdTicket: any }) => {
-        if (!createdTicket) {
+        if(!createdTicket) {
             toast.error("No ticket data to print.");
             return;
         }
@@ -48,7 +50,7 @@ const CreateDefaultTicket: React.FC<{
             moment(createdTicket.response.data.createdAt).format('LTS') : "undefined";
 
         const generateBarcodeDataURL = (text: string): string => {
-            if (!text || text === "undefined") return "";
+            if(!text || text === "undefined") return "";
 
             const canvas = document.createElement('canvas');
             try {
@@ -249,11 +251,14 @@ const CreateDefaultTicket: React.FC<{
                 console.error("HTTP error sending to BIXOLON SDK:", response.status, response.statusText);
             }
         } catch (error) {
-            if (axios.isAxiosError(error)) {
+            if(axios.isAxiosError(error)) {
                 console.error("Axios error connecting to BIXOLON SDK:", error?.message, error?.response?.data);
-            } else if (error instanceof Error) {
+                toast.error("System error connecting to Printer SDK.");
+            }
+            else if (error instanceof Error) {
                 console.error("General error:", error?.message);
-            } else {
+            }
+            else {
                 console.error("An unknown error occurred:", error);
             }
         }
@@ -262,37 +267,42 @@ const CreateDefaultTicket: React.FC<{
     // Handle submission for the second form (creating the ticket)
     const handleCreateTicket = async () => {
         try {
+            setIsPrintTicketButtonDisable(true);
             const response = await createTicket({
                 ticket_service: selectedService?.service_id ?? '',
                 ticket_level: 1,
             }).unwrap();
+
 
             let createdTicket = {
                 selectedService: selectedService,
                 response: null
             };
 
-            if (response.data) {
+            if(response.data) {
                 console.log("Ticket created successfully:", response.data);
                 createdTicket.response = response;
             }
 
-            if (response.success && response.data) {
-                toast.success(response.message);
+            if(response.success && response.data) {
+                toast.success(`Ticket created successfully: ${response.data.ticket_id}`, { autoClose: 5000 });
                 const newTicketNumber = response.ticket_number || Math.floor(Math.random() * 1000) + 1;
                 onCreateTicket(newTicketNumber);
                 await sendPrintJobToBixolonSDK({ createdTicket }); // Await the print job
                 onClose();
-            } else if (response.error) {
+            }
+            else if (response.error) {
                 toast.error(response.error);
-            } else {
+            }
+            else {
                 toast.error("An unexpected error occurred during ticket creation.");
             }
-        }
-        catch (error: any) {
+        } catch (error: any) {
             console.error("Error creating ticket:", error);
             const errorMessage = error?.data?.error || error?.message || "Failed to create ticket.";
             toast.error(errorMessage);
+        } finally {
+            setIsPrintTicketButtonDisable(false);
         }
     };
 
@@ -306,8 +316,8 @@ const CreateDefaultTicket: React.FC<{
                     <CardContent>
                         <div className='grid grid-cols-1 gap-4'>
                             <div className='grid col-span-1 items-end'>
-                                <Button onClick={handleCreateTicket} isLoading={createTicketProps.isLoading}> {/* Use isLoading from createTicketProps */}
-                                    {'Print Ticket'}
+                                <Button onClick={handleCreateTicket} isLoading={createTicketProps.isLoading || isPrintTicketButtonDisable} disabled={isPrintTicketButtonDisable}> {/* Use isLoading from createTicketProps */}
+                                    {createTicketProps.isLoading || isPrintTicketButtonDisable ? 'Printing...' : 'Print Ticket'}
                                 </Button>
                             </div>
                         </div>

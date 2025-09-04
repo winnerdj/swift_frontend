@@ -73,10 +73,10 @@ const TicketTable: React.FC<TicketTableProps> = ({
             accessorKey: 'ticket_support',
             header: 'Support'
         },
-        {
-            accessorKey: 'createdBy',
-            header: 'Created By'
-        },
+        // {
+        //     accessorKey: 'createdBy',
+        //     header: 'Created By'
+        // },
         {
             accessorKey: 'createdAt',
             header: 'Created At',
@@ -85,10 +85,10 @@ const TicketTable: React.FC<TicketTableProps> = ({
                 return date ? moment(date).format('YYYY-MM-DD HH:mm') : "N/A";
             }
         },
-        {
-            accessorKey: 'updatedBy',
-            header: 'Modified By'
-        },
+        // {
+        //     accessorKey: 'updatedBy',
+        //     header: 'Modified By'
+        // },
         {
             accessorKey: 'updatedAt',
             header: 'Modified At',

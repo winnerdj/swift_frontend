@@ -3,7 +3,7 @@ import useDisclosure from '@/hooks/useDisclosure';
 import { Button } from '@/components/ui/button'
 import CreatePodTicket from '../components/modals/CreatePodTicket';
 import CreateDefautTicket from '../components/modals/CreateDefaultTicket';
-import { Maximize } from 'lucide-react' // Import Maximize for fullscreen icon
+// import { Maximize } from 'lucide-react' // Import Maximize for fullscreen icon
 import { useGetServiceQuery } from '@/lib/redux/api/service.api';
 import { getUserDetails } from "@/lib/redux/slices/auth.slice";
 import { useAppSelector } from "@/hooks/redux.hooks";
@@ -22,7 +22,7 @@ const Kiosk: React.FC = () => {
     const [selectedService, setSelectedService] = useState<Service | null>(null);
     const [ticketNumber, setTicketNumber] = useState<number | null>(null);
     const [services, setServices] = useState<Service[]>([]);
-    const [isFullscreen, setIsFullscreen] = useState(false);
+    const [isFullscreen] = useState(false);
     const kioskRef = useRef<HTMLDivElement>(null);
 
     const { data = {}, isLoading, isSuccess } = useGetServiceQuery({
@@ -56,47 +56,47 @@ const Kiosk: React.FC = () => {
         console.log('Created ticket number: ', ticketNumber)
     };
 
-    const toggleFullscreen = () => {
-        const element = kioskRef.current;
-        if(!element) return;
+    // const toggleFullscreen = () => {
+    //     const element = kioskRef.current;
+    //     if(!element) return;
 
-        if(!document.fullscreenElement) {
-            if(element.requestFullscreen) {
-                element.requestFullscreen()
-                    .then(() => {
-                        setIsFullscreen(true);
-                    })
-                    .catch(err => {
-                        console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
-                    });
-            }
-        } else {
-            if(document.exitFullscreen) {
-                document.exitFullscreen()
-                    .then(() => {
-                        setIsFullscreen(false);
-                    });
-            }
-        }
-    };
+    //     if(!document.fullscreenElement) {
+    //         if(element.requestFullscreen) {
+    //             element.requestFullscreen()
+    //                 .then(() => {
+    //                     setIsFullscreen(true);
+    //                 })
+    //                 .catch(err => {
+    //                     console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+    //                 });
+    //         }
+    //     } else {
+    //         if(document.exitFullscreen) {
+    //             document.exitFullscreen()
+    //                 .then(() => {
+    //                     setIsFullscreen(false);
+    //                 });
+    //         }
+    //     }
+    // };
 
-    useEffect(() => {
-        const handleFullscreenChange = () => {
-            setIsFullscreen(!!document.fullscreenElement);
-        };
+    // useEffect(() => {
+    //     const handleFullscreenChange = () => {
+    //         setIsFullscreen(!!document.fullscreenElement);
+    //     };
 
-        document.addEventListener('fullscreenchange', handleFullscreenChange);
-        return () => {
-            document.removeEventListener('fullscreenchange', handleFullscreenChange);
-        };
-    }, []);
+    //     document.addEventListener('fullscreenchange', handleFullscreenChange);
+    //     return () => {
+    //         document.removeEventListener('fullscreenchange', handleFullscreenChange);
+    //     };
+    // }, []);
 
     return (
         <div
             className={`flex flex-col gap-3 pl-2 pr-2 ${isFullscreen ? 'h-screen' : ''}`}
             ref={kioskRef}
         >
-            {/* HEADER */}
+            {/* HEADER
             <div className='flex w-full items-center justify-end rounded-xs p-3 h-12 gap-x-4 bg-gray-50 shadow-2xs'>
                 <Button
                     variant="ghost"
@@ -106,7 +106,7 @@ const Kiosk: React.FC = () => {
                 >
                     <Maximize className="h-4 w-4" />
                 </Button>
-            </div>
+            </div> */}
 
             {/* MAIN CONTENT */}
             <div
@@ -134,7 +134,7 @@ const Kiosk: React.FC = () => {
                                                 rounded-lg shadow-md
                                                 flex items-center justify-center
                                                 w-full sm:w-3/4 md:w-3/4 lg:w-1/4 h-full text-lg sm:text-xl transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-400 focus:ring-opacity-75
-                                                ${isFullscreen ? 'py-16 sm:py-20 md:py-100 md:text-6xl ' : 'py-16 sm:py-20 md:py-40 md:text-3xl'}
+                                                ${isFullscreen ? 'py-16 sm:py-20 md:py-100 md:text-6xl ' : 'py-16 sm:py-20 md:py-30 md:text-6xl'}
                                                 ${selectedService?.service_id === service.service_id ? 'opacity-50 cursor-not-allowed' : ''}
                                             `}
                                             disabled={selectedService?.service_id === service.service_id}

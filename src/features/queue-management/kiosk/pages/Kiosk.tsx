@@ -41,7 +41,7 @@ const Kiosk: React.FC = () => {
     const handleServiceSelection = (service: Service) => {
         setSelectedService(service);
 
-        if(service.service_modal_ui) {
+        if(service.service_modal_ui === 'createPodTicket') {
             console.error("Invalid service selected:", service);
             kioskDisclosure.onOpen(service.service_modal_ui);
             return;

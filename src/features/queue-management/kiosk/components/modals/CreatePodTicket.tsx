@@ -223,7 +223,7 @@ const CreatePodTicket: React.FC<{
                         border-bottom: 13px solid #000;
                     }
                     .ticket-message {
-                        font-size: 50px;
+                        font-size: 35px;
                         font-weight: 500;
                         text-align: center;
                     }

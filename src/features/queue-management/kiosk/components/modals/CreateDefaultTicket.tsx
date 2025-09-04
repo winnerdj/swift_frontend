@@ -95,7 +95,7 @@ const CreateDefaultTicket: React.FC<{
                         margin: 5px 0;
                     }
                     .ticket-header {
-                        font-size: 20px;
+                        font-size: 35px;
                         padding: 0 0 20px 0;
                     }
                     .ticket-number {
@@ -107,7 +107,7 @@ const CreateDefaultTicket: React.FC<{
                         border-bottom: 13px solid #000;
                     }
                     .ticket-message {
-                        font-size: 40px;
+                        font-size: 50px;
                         font-weight: 500;
                         text-align: center;
                     }

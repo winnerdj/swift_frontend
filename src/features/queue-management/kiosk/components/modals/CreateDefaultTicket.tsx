@@ -107,7 +107,7 @@ const CreateDefaultTicket: React.FC<{
                         border-bottom: 13px solid #000;
                     }
                     .ticket-message {
-                        font-size: 35px;
+                        font-size: 40px;
                         font-weight: 500;
                         text-align: center;
                     }

@@ -45,7 +45,7 @@ const CreateDefaultTicket: React.FC<{
         const ticketCreationDate = createdTicket.response?.data?.createdAt ?
             moment(createdTicket.response.data.createdAt).format('MM/DD/YYYY') : "undefined";
         const ticketCreationTime = createdTicket.response?.data?.createdAt ?
-            moment(createdTicket.response.data.createdAt).format('LT') : "undefined";
+            moment(createdTicket.response.data.createdAt).format('LTS') : "undefined";
 
         const generateBarcodeDataURL = (text: string): string => {
             if (!text || text === "undefined") return "";
@@ -77,7 +77,6 @@ const CreateDefaultTicket: React.FC<{
                         font-family: 'Inter', sans-serif;
                         margin: 0;
                         color: #000;
-                        font-size: 100px; /* Very large base font size. Be mindful of print dimensions. */
                         width: 100%;
                         box-sizing: border-box;
                     }
@@ -91,16 +90,16 @@ const CreateDefaultTicket: React.FC<{
                         padding: 1px;
                     }
                     h1 {
-                        font-size: 1.2em;
+                        font-size: 100px;
                         text-align: center;
                         margin: 5px 0;
                     }
                     .ticket-header {
-                        font-size: 1;
+                        font-size: 30px;
                         padding: 0 0 20px 0;
                     }
                     .ticket-number {
-                        font-size: 1.8em;
+                        font-size: 170px;
                         font-weight: bold;
                         text-align: center;
                         padding: 0 0 100px 0;
@@ -108,7 +107,7 @@ const CreateDefaultTicket: React.FC<{
                         border-bottom: 13px solid #000;
                     }
                     .ticket-message {
-                        font-size: 1em;
+                        font-size: 100px;
                         font-weight: 500;
                         text-align: center;
                     }
@@ -129,9 +128,10 @@ const CreateDefaultTicket: React.FC<{
                     }
                     .barcode-label {
                         text-align: center;
-                        font-size: 0.5em;
+                        font-size: 50px;
                     }
                     .main-content {
+                        font-size: 85px;
                         display: flex;
                         justify-content: space-between;
                         align-items: flex-start;

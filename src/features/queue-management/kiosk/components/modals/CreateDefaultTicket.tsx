@@ -107,7 +107,7 @@ const CreateDefaultTicket: React.FC<{
                         border-bottom: 13px solid #000;
                     }
                     .ticket-message {
-                        font-size: 75;
+                        font-size: 75px;
                         font-weight: 500;
                         text-align: center;
                     }
@@ -128,7 +128,7 @@ const CreateDefaultTicket: React.FC<{
                     }
                     .barcode-label {
                         text-align: center;
-                        font-size: 350px;
+                        font-size: 50px;
                     }
                     .main-content {
                         font-size: 60px;
@@ -151,9 +151,7 @@ const CreateDefaultTicket: React.FC<{
                         display: flex;
                         flex-direction: column;
                     }
-
-                    .ticket-details p {
-                        display: flex;
+.ticket-details p { display: flex;
                         align-items: baseline;
                         flex-wrap: nowrap; /* Keep label and value on one line for small content */
                     }

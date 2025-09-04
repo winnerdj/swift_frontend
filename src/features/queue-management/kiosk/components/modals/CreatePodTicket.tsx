@@ -206,16 +206,16 @@ const CreatePodTicket: React.FC<{
                         padding: 1px;
                     }
                     h1 {
-                        font-size: 100px;
+                        font-size: 75px;
                         text-align: center;
                         margin: 5px 0;
                     }
                     .ticket-header {
-                        font-size: 30px;
+                        font-size: 20px;
                         padding: 0 0 20px 0;
                     }
                     .ticket-number {
-                        font-size: 170px;
+                        font-size: 120px;
                         font-weight: bold;
                         text-align: center;
                         padding: 0 0 100px 0;
@@ -223,7 +223,7 @@ const CreatePodTicket: React.FC<{
                         border-bottom: 13px solid #000;
                     }
                     .ticket-message {
-                        font-size: 100px;
+                        font-size: 75px;
                         font-weight: 500;
                         text-align: center;
                     }
@@ -247,7 +247,7 @@ const CreatePodTicket: React.FC<{
                         font-size: 50px;
                     }
                     .main-content {
-                        font-size: 85px;
+                        font-size: 60px;
                         display: flex;
                         justify-content: space-between;
                         align-items: flex-start;
